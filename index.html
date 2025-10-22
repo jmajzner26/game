@@ -3,11 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tower Defense Game</title>
+    <title>Epic Tower Defense</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
+    <!-- Home Screen -->
+    <div class="home-screen" id="homeScreen">
+        <div class="home-content">
+            <h1 class="game-title">🏰 EPIC TOWER DEFENSE 🏰</h1>
+            <p class="game-subtitle">Defend your kingdom from the invading hordes!</p>
+            
+            <div class="difficulty-selection">
+                <h2>Choose Your Challenge</h2>
+                <div class="difficulty-options">
+                    <button class="difficulty-btn easy" data-difficulty="easy">
+                        <div class="difficulty-icon">🌱</div>
+                        <div class="difficulty-info">
+                            <h3>Easy</h3>
+                            <p>Perfect for beginners</p>
+                            <ul>
+                                <li>Slower enemies</li>
+                                <li>More starting money</li>
+                                <li>Gentle difficulty curve</li>
+                            </ul>
+                        </div>
+                    </button>
+                    
+                    <button class="difficulty-btn medium" data-difficulty="medium">
+                        <div class="difficulty-icon">⚔️</div>
+                        <div class="difficulty-info">
+                            <h3>Medium</h3>
+                            <p>Balanced challenge</p>
+                            <ul>
+                                <li>Standard enemy speed</li>
+                                <li>Normal starting money</li>
+                                <li>Moderate difficulty</li>
+                            </ul>
+                        </div>
+                    </button>
+                    
+                    <button class="difficulty-btn hard" data-difficulty="hard">
+                        <div class="difficulty-icon">🔥</div>
+                        <div class="difficulty-info">
+                            <h3>Hard</h3>
+                            <p>For tower defense masters</p>
+                            <ul>
+                                <li>Faster enemies</li>
+                                <li>Less starting money</li>
+                                <li>Bosses appear earlier</li>
+                            </ul>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-label">High Score:</span>
+                    <span class="stat-value" id="highScore">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Games Played:</span>
+                    <span class="stat-value" id="gamesPlayed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Best Wave:</span>
+                    <span class="stat-value" id="bestWave">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="game-container" id="gameContainer">
         <div class="ui-panel">
             <div class="stats">
                 <div class="stat">
@@ -21,6 +89,10 @@
                 <div class="stat">
                     <span class="stat-label">Wave:</span>
                     <span id="wave">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span id="score">0</span>
                 </div>
             </div>
             <div class="tower-shop">
@@ -85,6 +157,9 @@
             <div class="controls">
                 <button id="start-wave">Start Wave</button>
                 <button id="pause-game">Pause</button>
+                <button id="upgrade-tower">Upgrade Tower</button>
+                <button id="sell-tower">Sell Tower</button>
+                <button id="back-to-menu">Back to Menu</button>
             </div>
         </div>
         <canvas id="gameCanvas" width="800" height="600"></canvas>

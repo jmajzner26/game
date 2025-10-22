@@ -1,4 +1,4 @@
-// Tower Defense Game
+// Epic Tower Defense Game
 class TowerDefenseGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -7,60 +7,90 @@ class TowerDefenseGame {
         this.height = this.canvas.height;
         
         // Game state
-        this.gameState = 'menu'; // menu, playing, paused, gameOver
+        this.gameState = 'home'; // home, menu, playing, paused, gameOver
+        this.difficulty = 'medium';
         this.health = 100;
         this.money = 500;
         this.wave = 1;
+        this.score = 0;
         this.waveInProgress = false;
         this.selectedTowerType = null;
         this.draggedTowerType = null;
         this.dragPreview = null;
+        this.selectedTower = null;
+        
+        // Difficulty settings
+        this.difficultySettings = {
+            easy: {
+                enemySpeedMultiplier: 0.7,
+                startingMoney: 800,
+                enemyHealthMultiplier: 0.8,
+                bossWaveInterval: 15,
+                enemyRewardMultiplier: 1.2
+            },
+            medium: {
+                enemySpeedMultiplier: 1.0,
+                startingMoney: 500,
+                enemyHealthMultiplier: 1.0,
+                bossWaveInterval: 10,
+                enemyRewardMultiplier: 1.0
+            },
+            hard: {
+                enemySpeedMultiplier: 1.3,
+                startingMoney: 300,
+                enemyHealthMultiplier: 1.2,
+                bossWaveInterval: 7,
+                enemyRewardMultiplier: 0.8
+            }
+        };
         
         // Game objects
         this.towers = [];
         this.enemies = [];
         this.projectiles = [];
+        this.particles = [];
+        this.buildings = [];
         this.path = [];
         
-        // Tower types with enhanced stats and descriptions
+        // Tower types with shots per minute (SPM) instead of fire rate
         this.towerTypes = {
             basic: { 
-                cost: 50, damage: 25, range: 80, fireRate: 1000, color: '#4a90e2', type: 'combat',
+                cost: 50, damage: 25, range: 80, spm: 60, color: '#4a90e2', type: 'combat',
                 description: 'Standard defensive tower with balanced stats.',
                 icon: '🔫'
             },
             rapid: { 
-                cost: 100, damage: 15, range: 70, fireRate: 500, color: '#ff6b6b', type: 'combat',
+                cost: 100, damage: 15, range: 70, spm: 120, color: '#ff6b6b', type: 'combat',
                 description: 'Fast-firing tower perfect for swarms of weak enemies.',
                 icon: '⚡'
             },
             heavy: { 
-                cost: 200, damage: 60, range: 100, fireRate: 2000, color: '#ffd700', type: 'combat',
+                cost: 200, damage: 60, range: 100, spm: 30, color: '#ffd700', type: 'combat',
                 description: 'Powerful cannon that deals massive damage to tough enemies.',
                 icon: '💥'
             },
             money: { 
-                cost: 150, damage: 0, range: 0, fireRate: 0, color: '#32cd32', type: 'money', income: 25,
+                cost: 150, damage: 0, range: 0, spm: 0, color: '#32cd32', type: 'money', income: 25,
                 description: 'Generates passive income between waves. Essential for economy!',
                 icon: '💰'
             },
             ice: { 
-                cost: 120, damage: 20, range: 90, fireRate: 1200, color: '#87ceeb', type: 'combat', slowEffect: 0.5,
+                cost: 120, damage: 20, range: 90, spm: 50, color: '#87ceeb', type: 'combat', slowEffect: 0.5,
                 description: 'Slows enemies by 50% for 3 seconds. Great for crowd control.',
                 icon: '❄️'
             },
             poison: { 
-                cost: 180, damage: 10, range: 85, fireRate: 800, color: '#9acd32', type: 'combat', poisonDamage: 5, poisonDuration: 5000,
+                cost: 180, damage: 10, range: 85, spm: 75, color: '#9acd32', type: 'combat', poisonDamage: 5, poisonDuration: 5000,
                 description: 'Poisons enemies dealing damage over time. Stacks with other towers.',
                 icon: '☠️'
             },
             laser: { 
-                cost: 300, damage: 80, range: 120, fireRate: 3000, color: '#ff1493', type: 'combat', pierce: true,
+                cost: 300, damage: 80, range: 120, spm: 20, color: '#ff1493', type: 'combat', pierce: true,
                 description: 'High-tech laser that pierces through multiple enemies.',
                 icon: '🔴'
             },
             shield: { 
-                cost: 250, damage: 0, range: 0, fireRate: 0, color: '#c0c0c0', type: 'support', shieldAmount: 20,
+                cost: 250, damage: 0, range: 0, spm: 0, color: '#c0c0c0', type: 'support', shieldAmount: 20,
                 description: 'Provides shields to nearby towers, reducing incoming damage.',
                 icon: '🛡️'
             }
@@ -81,8 +111,63 @@ class TowerDefenseGame {
         this.tooltipTimeout = null;
         
         this.setupPath();
+        this.setupBuildings();
         this.setupEventListeners();
+        this.loadGameStats();
+        this.showHomeScreen();
         this.gameLoop();
+    }
+    
+    showHomeScreen() {
+        document.getElementById('homeScreen').style.display = 'flex';
+        document.getElementById('gameContainer').classList.remove('show');
+        this.gameState = 'home';
+    }
+    
+    hideHomeScreen() {
+        document.getElementById('homeScreen').style.display = 'none';
+        document.getElementById('gameContainer').classList.add('show');
+    }
+    
+    setDifficulty(difficulty) {
+        this.difficulty = difficulty;
+        const settings = this.difficultySettings[difficulty];
+        this.money = settings.startingMoney;
+        this.updateUI();
+    }
+    
+    loadGameStats() {
+        const stats = JSON.parse(localStorage.getItem('towerDefenseStats') || '{}');
+        document.getElementById('highScore').textContent = stats.highScore || 0;
+        document.getElementById('gamesPlayed').textContent = stats.gamesPlayed || 0;
+        document.getElementById('bestWave').textContent = stats.bestWave || 0;
+    }
+    
+    saveGameStats() {
+        const stats = JSON.parse(localStorage.getItem('towerDefenseStats') || '{}');
+        stats.highScore = Math.max(stats.highScore || 0, this.score);
+        stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
+        stats.bestWave = Math.max(stats.bestWave || 0, this.wave - 1);
+        localStorage.setItem('towerDefenseStats', JSON.stringify(stats));
+        this.loadGameStats();
+    }
+    
+    setupBuildings() {
+        // Create decorative buildings and landscape elements
+        this.buildings = [
+            { x: 50, y: 100, type: 'house', size: 30 },
+            { x: 150, y: 80, type: 'house', size: 25 },
+            { x: 250, y: 120, type: 'house', size: 35 },
+            { x: 400, y: 90, type: 'house', size: 28 },
+            { x: 550, y: 110, type: 'house', size: 32 },
+            { x: 700, y: 85, type: 'house', size: 30 },
+            { x: 100, y: 400, type: 'tree', size: 20 },
+            { x: 200, y: 380, type: 'tree', size: 25 },
+            { x: 350, y: 420, type: 'tree', size: 22 },
+            { x: 500, y: 400, type: 'tree', size: 28 },
+            { x: 650, y: 390, type: 'tree', size: 24 },
+            { x: 750, y: 410, type: 'tree', size: 26 }
+        ];
     }
     
     setupPath() {
@@ -101,13 +186,28 @@ class TowerDefenseGame {
     }
     
     setupEventListeners() {
-        // Canvas events for tower placement
+        // Home screen difficulty selection
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const difficulty = btn.dataset.difficulty;
+                this.setDifficulty(difficulty);
+                this.hideHomeScreen();
+                this.startGame();
+            });
+        });
+        
+        // Canvas events for tower placement and selection
         this.canvas.addEventListener('click', (e) => {
-            if (this.gameState === 'playing' && this.selectedTowerType) {
+            if (this.gameState === 'playing') {
                 const rect = this.canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                this.placeTower(x, y);
+                
+                if (this.selectedTowerType) {
+                    this.placeTower(x, y);
+                } else {
+                    this.selectTower(x, y);
+                }
             }
         });
 
@@ -197,6 +297,18 @@ class TowerDefenseGame {
             this.togglePause();
         });
         
+        document.getElementById('upgrade-tower').addEventListener('click', () => {
+            this.upgradeSelectedTower();
+        });
+        
+        document.getElementById('sell-tower').addEventListener('click', () => {
+            this.sellSelectedTower();
+        });
+        
+        document.getElementById('back-to-menu').addEventListener('click', () => {
+            this.showHomeScreen();
+        });
+        
         document.getElementById('overlayButton').addEventListener('click', () => {
             this.startGame();
         });
@@ -207,6 +319,44 @@ class TowerDefenseGame {
         document.getElementById('gameOverlay').classList.add('hidden');
     }
     
+    selectTower(x, y) {
+        // Find tower at click position
+        for (const tower of this.towers) {
+            const distance = Math.sqrt((x - tower.x) ** 2 + (y - tower.y) ** 2);
+            if (distance <= tower.radius) {
+                this.selectedTower = tower;
+                this.selectedTowerType = null;
+                document.querySelectorAll('.tower-option').forEach(opt => opt.classList.remove('selected'));
+                return;
+            }
+        }
+        // If no tower clicked, deselect
+        this.selectedTower = null;
+    }
+    
+    upgradeSelectedTower() {
+        if (this.selectedTower && this.selectedTower.level < 3) {
+            const upgradeCost = this.selectedTower.cost * 0.5;
+            if (this.money >= upgradeCost) {
+                this.money -= upgradeCost;
+                this.selectedTower.level++;
+                this.selectedTower.damage *= 1.5;
+                this.selectedTower.range *= 1.2;
+                this.updateUI();
+            }
+        }
+    }
+    
+    sellSelectedTower() {
+        if (this.selectedTower) {
+            const sellValue = this.selectedTower.cost * 0.7;
+            this.money += sellValue;
+            this.towers = this.towers.filter(t => t !== this.selectedTower);
+            this.selectedTower = null;
+            this.updateUI();
+        }
+    }
+    
     startWave() {
         if (!this.waveInProgress) {
             this.waveInProgress = true;
@@ -215,6 +365,7 @@ class TowerDefenseGame {
     }
     
     spawnEnemies() {
+        const settings = this.difficultySettings[this.difficulty];
         const enemyCount = 5 + this.wave * 2;
         const spawnDelay = 800;
         
@@ -222,7 +373,7 @@ class TowerDefenseGame {
             setTimeout(() => {
                 let enemyType = 'basic';
                 
-                // Enhanced enemy spawning based on wave
+                // Enhanced enemy spawning based on wave and difficulty
                 if (this.wave > 2) {
                     const rand = Math.random();
                     if (rand < 0.3) enemyType = 'fast';
@@ -241,12 +392,17 @@ class TowerDefenseGame {
                     else if (rand < 0.2) enemyType = 'tank';
                 }
                 
-                // Boss every 10 waves
-                if (this.wave % 10 === 0 && i === enemyCount - 1) {
+                // Boss every N waves based on difficulty
+                if (this.wave % settings.bossWaveInterval === 0 && i === enemyCount - 1) {
                     enemyType = 'boss';
                 }
                 
-                this.enemies.push(new Enemy(this.path[0].x, this.path[0].y, enemyType, this.enemyTypes[enemyType]));
+                const enemyStats = { ...this.enemyTypes[enemyType] };
+                enemyStats.speed *= settings.enemySpeedMultiplier;
+                enemyStats.health = Math.floor(enemyStats.health * settings.enemyHealthMultiplier);
+                enemyStats.reward = Math.floor(enemyStats.reward * settings.enemyRewardMultiplier);
+                
+                this.enemies.push(new Enemy(this.path[0].x, this.path[0].y, enemyType, enemyStats));
                 
                 if (i === enemyCount - 1) {
                     setTimeout(() => {
@@ -269,7 +425,7 @@ class TowerDefenseGame {
         
         let statsText = '';
         if (towerStats.type === 'combat') {
-            statsText = `Damage: ${towerStats.damage}\nRange: ${towerStats.range}\nFire Rate: ${(towerStats.fireRate / 1000).toFixed(1)}s`;
+            statsText = `Damage: ${towerStats.damage}\nRange: ${towerStats.range}\nFire Rate: ${towerStats.spm} shots/min`;
             if (towerStats.slowEffect) statsText += `\nSlow: ${(towerStats.slowEffect * 100)}%`;
             if (towerStats.poisonDamage) statsText += `\nPoison: ${towerStats.poisonDamage}/s`;
             if (towerStats.pierce) statsText += '\nPierces enemies';
@@ -434,6 +590,7 @@ class TowerDefenseGame {
                     // Remove enemy if dead
                     if (enemy.health <= 0) {
                         this.money += enemy.reward;
+                        this.score += enemy.reward * 10; // Score is 10x the reward
                         this.enemies.splice(i, 1);
                     }
                     
@@ -467,6 +624,12 @@ class TowerDefenseGame {
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
         
+        // Draw grass texture
+        this.drawGrass();
+        
+        // Draw buildings
+        this.drawBuildings();
+        
         // Draw atmospheric effects
         this.drawAtmosphere();
         
@@ -490,6 +653,11 @@ class TowerDefenseGame {
         // Draw particle effects
         this.drawParticles();
         
+        // Draw selected tower highlight
+        if (this.selectedTower) {
+            this.drawSelectedTowerHighlight();
+        }
+        
         // Draw tower placement preview
         if (this.selectedTowerType) {
             this.canvas.style.cursor = 'crosshair';
@@ -498,6 +666,79 @@ class TowerDefenseGame {
         } else {
             this.canvas.style.cursor = 'default';
         }
+    }
+    
+    drawGrass() {
+        // Draw grass texture
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.3;
+        for (let i = 0; i < 200; i++) {
+            const x = Math.random() * this.width;
+            const y = Math.random() * this.height;
+            this.ctx.fillStyle = '#228B22';
+            this.ctx.fillRect(x, y, 2, 8);
+        }
+        this.ctx.restore();
+    }
+    
+    drawBuildings() {
+        this.buildings.forEach(building => {
+            this.ctx.save();
+            
+            if (building.type === 'house') {
+                // Draw house
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(building.x - building.size/2, building.y - building.size/2, building.size, building.size);
+                
+                // Draw roof
+                this.ctx.fillStyle = '#DC143C';
+                this.ctx.beginPath();
+                this.ctx.moveTo(building.x - building.size/2, building.y - building.size/2);
+                this.ctx.lineTo(building.x, building.y - building.size);
+                this.ctx.lineTo(building.x + building.size/2, building.y - building.size/2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // Draw door
+                this.ctx.fillStyle = '#654321';
+                this.ctx.fillRect(building.x - 3, building.y - building.size/2, 6, building.size/2);
+                
+                // Draw windows
+                this.ctx.fillStyle = '#87CEEB';
+                this.ctx.fillRect(building.x - building.size/3, building.y - building.size/3, 4, 4);
+                this.ctx.fillRect(building.x + building.size/6, building.y - building.size/3, 4, 4);
+                
+            } else if (building.type === 'tree') {
+                // Draw tree trunk
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(building.x - 3, building.y - building.size/2, 6, building.size);
+                
+                // Draw tree leaves
+                this.ctx.fillStyle = '#228B22';
+                this.ctx.beginPath();
+                this.ctx.arc(building.x, building.y - building.size/2, building.size/2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            this.ctx.restore();
+        });
+    }
+    
+    drawSelectedTowerHighlight() {
+        this.ctx.save();
+        this.ctx.strokeStyle = '#ffff00';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(this.selectedTower.x, this.selectedTower.y, this.selectedTower.radius + 5, 0, Math.PI * 2);
+        this.ctx.stroke();
+        
+        // Draw level indicator
+        this.ctx.fillStyle = '#ffff00';
+        this.ctx.font = 'bold 12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`L${this.selectedTower.level}`, this.selectedTower.x, this.selectedTower.y - this.selectedTower.radius - 10);
+        
+        this.ctx.restore();
     }
     
     drawAtmosphere() {
@@ -626,6 +867,7 @@ class TowerDefenseGame {
         document.getElementById('health').textContent = this.health;
         document.getElementById('money').textContent = this.money;
         document.getElementById('wave').textContent = this.wave;
+        document.getElementById('score').textContent = this.score;
         
         // Update tower costs
         document.querySelectorAll('.tower-option').forEach(option => {
@@ -639,12 +881,30 @@ class TowerDefenseGame {
                 option.style.opacity = '1';
             }
         });
+        
+        // Update upgrade/sell buttons
+        const upgradeBtn = document.getElementById('upgrade-tower');
+        const sellBtn = document.getElementById('sell-tower');
+        
+        if (this.selectedTower) {
+            const upgradeCost = this.selectedTower.cost * 0.5;
+            upgradeBtn.disabled = this.selectedTower.level >= 3 || this.money < upgradeCost;
+            upgradeBtn.textContent = `Upgrade ($${upgradeCost})`;
+            sellBtn.disabled = false;
+            sellBtn.textContent = `Sell ($${Math.floor(this.selectedTower.cost * 0.7)})`;
+        } else {
+            upgradeBtn.disabled = true;
+            upgradeBtn.textContent = 'Upgrade Tower';
+            sellBtn.disabled = true;
+            sellBtn.textContent = 'Sell Tower';
+        }
     }
     
     gameOver() {
         this.gameState = 'gameOver';
+        this.saveGameStats();
         document.getElementById('overlayTitle').textContent = 'Game Over!';
-        document.getElementById('overlayMessage').textContent = `You survived ${this.wave - 1} waves!`;
+        document.getElementById('overlayMessage').textContent = `You survived ${this.wave - 1} waves!\nFinal Score: ${this.score}`;
         document.getElementById('overlayButton').textContent = 'Play Again';
         document.getElementById('gameOverlay').classList.remove('hidden');
         
@@ -654,14 +914,17 @@ class TowerDefenseGame {
     }
     
     resetGame() {
+        const settings = this.difficultySettings[this.difficulty];
         this.health = 100;
-        this.money = 500;
+        this.money = settings.startingMoney;
         this.wave = 1;
+        this.score = 0;
         this.waveInProgress = false;
         this.towers = [];
         this.enemies = [];
         this.projectiles = [];
         this.selectedTowerType = null;
+        this.selectedTower = null;
         document.querySelectorAll('.tower-option').forEach(opt => opt.classList.remove('selected'));
         this.startGame();
     }
@@ -873,13 +1136,15 @@ class Tower {
         this.towerType = stats.type || 'combat';
         this.damage = stats.damage;
         this.range = stats.range;
-        this.fireRate = stats.fireRate;
+        this.spm = stats.spm; // Shots per minute
+        this.fireRate = stats.spm > 0 ? 60000 / stats.spm : 0; // Convert SPM to milliseconds
         this.color = stats.color;
         this.radius = 15;
         this.lastShot = 0;
         this.target = null;
         this.income = stats.income || 0;
         this.lastMoneyGeneration = 0;
+        this.cost = stats.cost;
         
         // Enhanced properties
         this.slowEffect = stats.slowEffect || 0;
