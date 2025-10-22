@@ -18,6 +18,12 @@ class TowerDefenseGame {
         this.draggedTowerType = null;
         this.dragPreview = null;
         this.selectedTower = null;
+        this.powerUps = [];
+        this.abilities = {
+            freeze: { cooldown: 0, maxCooldown: 30000 }, // 30 seconds
+            heal: { cooldown: 0, maxCooldown: 45000 }, // 45 seconds
+            money: { cooldown: 0, maxCooldown: 60000 } // 60 seconds
+        };
         
         // Difficulty settings
         this.difficultySettings = {
@@ -93,6 +99,21 @@ class TowerDefenseGame {
                 cost: 250, damage: 0, range: 0, spm: 0, color: '#c0c0c0', type: 'support', shieldAmount: 20,
                 description: 'Provides shields to nearby towers, reducing incoming damage.',
                 icon: '🛡️'
+            },
+            sniper: { 
+                cost: 400, damage: 150, range: 200, spm: 15, color: '#8B0000', type: 'combat', criticalChance: 0.3,
+                description: 'Long-range sniper with high damage and critical hit chance.',
+                icon: '🎯'
+            },
+            multi: { 
+                cost: 350, damage: 30, range: 100, spm: 80, color: '#9370DB', type: 'combat', multiShot: 3,
+                description: 'Fires multiple projectiles at once, great for crowd control.',
+                icon: '💫'
+            },
+            emp: { 
+                cost: 500, damage: 0, range: 120, spm: 10, color: '#FFD700', type: 'special', empDuration: 5000,
+                description: 'Disables enemy abilities and slows them significantly.',
+                icon: '⚡'
             }
         };
         
@@ -312,6 +333,19 @@ class TowerDefenseGame {
         document.getElementById('overlayButton').addEventListener('click', () => {
             this.startGame();
         });
+        
+        // Ability buttons
+        document.getElementById('freeze-ability').addEventListener('click', () => {
+            this.useAbility('freeze');
+        });
+        
+        document.getElementById('heal-ability').addEventListener('click', () => {
+            this.useAbility('heal');
+        });
+        
+        document.getElementById('money-ability').addEventListener('click', () => {
+            this.useAbility('money');
+        });
     }
     
     startGame() {
@@ -355,6 +389,59 @@ class TowerDefenseGame {
             this.selectedTower = null;
             this.updateUI();
         }
+    }
+    
+    useAbility(abilityName) {
+        const ability = this.abilities[abilityName];
+        const now = Date.now();
+        
+        if (ability.cooldown > now) {
+            return; // Still on cooldown
+        }
+        
+        switch (abilityName) {
+            case 'freeze':
+                // Freeze all enemies for 5 seconds
+                this.enemies.forEach(enemy => {
+                    enemy.applySlow(0.9, 5000); // 90% slow for 5 seconds
+                });
+                ability.cooldown = now + ability.maxCooldown;
+                break;
+                
+            case 'heal':
+                // Heal base by 25 HP
+                this.health = Math.min(100, this.health + 25);
+                ability.cooldown = now + ability.maxCooldown;
+                break;
+                
+            case 'money':
+                // Give extra money
+                this.money += 200;
+                ability.cooldown = now + ability.maxCooldown;
+                break;
+        }
+        
+        this.updateAbilityUI();
+        this.updateUI();
+    }
+    
+    updateAbilityUI() {
+        const now = Date.now();
+        
+        Object.keys(this.abilities).forEach(abilityName => {
+            const ability = this.abilities[abilityName];
+            const button = document.getElementById(`${abilityName}-ability`);
+            const cooldownElement = button.querySelector('.ability-cooldown');
+            
+            if (ability.cooldown > now) {
+                const remaining = Math.ceil((ability.cooldown - now) / 1000);
+                button.disabled = true;
+                cooldownElement.textContent = `${remaining}s`;
+            } else {
+                button.disabled = false;
+                cooldownElement.textContent = 'Ready';
+            }
+        });
     }
     
     startWave() {
@@ -932,6 +1019,7 @@ class TowerDefenseGame {
     gameLoop() {
         this.update();
         this.render();
+        this.updateAbilityUI();
         requestAnimationFrame(() => this.gameLoop());
     }
 }
@@ -960,6 +1048,8 @@ class Enemy {
         this.poisonDamage = 0;
         this.poisonDuration = 0;
         this.shield = 0;
+        this.empDisabled = false;
+        this.empEndTime = 0;
     }
     
     update() {
@@ -981,6 +1071,11 @@ class Enemy {
             if (this.slowDuration <= 0) {
                 this.slowEffect = 0;
             }
+        }
+        
+        // Check EMP effect
+        if (this.empDisabled && now >= this.empEndTime) {
+            this.empDisabled = false;
         }
         
         if (this.pathIndex < game.path.length - 1) {
@@ -1097,6 +1192,14 @@ class Enemy {
             ctx.fill();
         }
         
+        // EMP effect indicator
+        if (this.empDisabled) {
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(this.x - this.radius - 8, this.y - this.radius - 8, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
         ctx.restore();
         
         // Enhanced health bar
@@ -1152,6 +1255,9 @@ class Tower {
         this.poisonDuration = stats.poisonDuration || 0;
         this.pierce = stats.pierce || false;
         this.shieldAmount = stats.shieldAmount || 0;
+        this.criticalChance = stats.criticalChance || 0;
+        this.multiShot = stats.multiShot || 0;
+        this.empDuration = stats.empDuration || 0;
         this.level = 1;
         this.experience = 0;
     }
@@ -1171,6 +1277,9 @@ class Tower {
         } else if (this.towerType === 'support') {
             // Apply shields to nearby towers
             this.applyShields();
+        } else if (this.towerType === 'special') {
+            // EMP tower - apply EMP effect to enemies
+            this.applyEMPEffect(enemies);
         }
     }
     
@@ -1191,21 +1300,36 @@ class Tower {
     
     shoot(projectiles) {
         if (this.target) {
-            const dx = this.target.x - this.x;
-            const dy = this.target.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
             if (this.pierce) {
                 // Laser pierces through multiple enemies
                 projectiles.push(new LaserProjectile(
                     this.x, this.y,
-                    dx / distance, dy / distance,
-                    this.damage, this.color, this.target
+                    this.target,
+                    this.damage, this.color
                 ));
-            } else {
+            } else if (this.multiShot) {
+                // Multi-shot tower fires multiple projectiles
+                for (let i = 0; i < this.multiShot; i++) {
+                    projectiles.push(new Projectile(
+                        this.x, this.y,
+                        this.target,
+                        this.damage, this.color, this.type
+                    ));
+                }
+            } else if (this.criticalChance) {
+                // Sniper tower with critical hit chance
+                const isCritical = Math.random() < this.criticalChance;
+                const damage = isCritical ? this.damage * 2 : this.damage;
                 projectiles.push(new Projectile(
                     this.x, this.y,
-                    dx / distance, dy / distance,
+                    this.target,
+                    damage, this.color, this.type
+                ));
+            } else {
+                // Standard projectile
+                projectiles.push(new Projectile(
+                    this.x, this.y,
+                    this.target,
                     this.damage, this.color, this.type
                 ));
             }
@@ -1222,6 +1346,24 @@ class Tower {
                     tower.hasShield = true;
                 }
             }
+        }
+    }
+    
+    applyEMPEffect(enemies) {
+        const now = Date.now();
+        
+        // Apply EMP effect every few seconds
+        if (now - this.lastShot >= this.fireRate) {
+            for (const enemy of enemies) {
+                const distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+                if (distance <= this.range) {
+                    // Apply EMP effect - slow and disable abilities
+                    enemy.applySlow(0.7, this.empDuration); // 70% slow
+                    enemy.empDisabled = true;
+                    enemy.empEndTime = now + this.empDuration;
+                }
+            }
+            this.lastShot = now;
         }
     }
     
@@ -1307,6 +1449,34 @@ class Tower {
             ctx.stroke();
         }
         
+        if (this.towerType === 'special') {
+            // EMP tower energy field
+            const energy = Math.sin(Date.now() * 0.008) * 0.4 + 0.6;
+            ctx.strokeStyle = `rgba(255, 215, 0, ${energy})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (this.criticalChance > 0) {
+            // Sniper tower scope effect
+            ctx.strokeStyle = 'rgba(139, 0, 0, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (this.multiShot > 0) {
+            // Multi tower burst effect
+            ctx.strokeStyle = 'rgba(147, 112, 219, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
         // Draw range circle when targeting (only for combat towers)
         if (this.target && this.towerType === 'combat') {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1337,7 +1507,10 @@ class Tower {
             ice: '❄️',
             poison: '☠️',
             laser: '🔴',
-            shield: '🛡️'
+            shield: '🛡️',
+            sniper: '🎯',
+            multi: '💫',
+            emp: '⚡'
         };
         return icons[this.type] || '🔫';
     }
@@ -1359,29 +1532,67 @@ class Tower {
     }
 }
 
-// Enhanced Projectile class
+// Enhanced Projectile class with homing
 class Projectile {
-    constructor(x, y, vx, vy, damage, color, towerType) {
+    constructor(x, y, target, damage, color, towerType) {
         this.x = x;
         this.y = y;
-        this.vx = vx * 3;
-        this.vy = vy * 3;
+        this.target = target;
         this.damage = damage;
         this.color = color;
         this.radius = 3;
         this.towerType = towerType;
         this.trail = [];
+        this.speed = 4;
+        this.homingStrength = 0.1; // How much to adjust towards target
+        this.maxAge = 3000; // 3 seconds max lifetime
+        this.age = 0;
+        
+        // Initial velocity towards target
+        if (target) {
+            const dx = target.x - x;
+            const dy = target.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            this.vx = (dx / distance) * this.speed;
+            this.vy = (dy / distance) * this.speed;
+        } else {
+            this.vx = 0;
+            this.vy = 0;
+        }
     }
     
     update() {
+        this.age += 16; // Assuming 60fps
+        
         // Add current position to trail
         this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > 5) {
+        if (this.trail.length > 8) {
             this.trail.shift();
         }
         
+        // Homing behavior - adjust velocity towards target
+        if (this.target && this.target.health > 0) {
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                // Calculate desired velocity towards target
+                const desiredVx = (dx / distance) * this.speed;
+                const desiredVy = (dy / distance) * this.speed;
+                
+                // Gradually adjust current velocity towards desired velocity
+                this.vx += (desiredVx - this.vx) * this.homingStrength;
+                this.vy += (desiredVy - this.vy) * this.homingStrength;
+            }
+        }
+        
+        // Move projectile
         this.x += this.vx;
         this.y += this.vy;
+        
+        // Check if projectile is too old
+        return this.age < this.maxAge;
     }
     
     render(ctx) {
@@ -1414,22 +1625,49 @@ class Projectile {
     }
 }
 
-// Laser Projectile class for piercing attacks
+// Laser Projectile class for piercing attacks with homing
 class LaserProjectile {
-    constructor(x, y, vx, vy, damage, color, target) {
+    constructor(x, y, target, damage, color) {
         this.x = x;
         this.y = y;
-        this.vx = vx * 4;
-        this.vy = vy * 4;
+        this.target = target;
         this.damage = damage;
         this.color = color;
-        this.target = target;
         this.hitEnemies = [];
         this.lifetime = 1000; // 1 second
         this.startTime = Date.now();
+        this.speed = 6;
+        this.homingStrength = 0.15; // Stronger homing for laser
+        
+        // Initial velocity towards target
+        if (target) {
+            const dx = target.x - x;
+            const dy = target.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            this.vx = (dx / distance) * this.speed;
+            this.vy = (dy / distance) * this.speed;
+        } else {
+            this.vx = 0;
+            this.vy = 0;
+        }
     }
     
     update() {
+        // Homing behavior for laser
+        if (this.target && this.target.health > 0) {
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                const desiredVx = (dx / distance) * this.speed;
+                const desiredVy = (dy / distance) * this.speed;
+                
+                this.vx += (desiredVx - this.vx) * this.homingStrength;
+                this.vy += (desiredVy - this.vy) * this.homingStrength;
+            }
+        }
+        
         this.x += this.vx;
         this.y += this.vy;
         

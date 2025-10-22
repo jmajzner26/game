@@ -153,6 +153,27 @@
                         <div class="tower-cost">$250</div>
                     </div>
                 </div>
+                <div class="tower-option" data-tower="sniper" draggable="true">
+                    <div class="tower-icon">🎯</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Sniper Tower</div>
+                        <div class="tower-cost">$400</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="multi" draggable="true">
+                    <div class="tower-icon">💫</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Multi Tower</div>
+                        <div class="tower-cost">$350</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="emp" draggable="true">
+                    <div class="tower-icon">⚡</div>
+                    <div class="tower-info">
+                        <div class="tower-name">EMP Tower</div>
+                        <div class="tower-cost">$500</div>
+                    </div>
+                </div>
             </div>
             <div class="controls">
                 <button id="start-wave">Start Wave</button>
@@ -160,6 +181,29 @@
                 <button id="upgrade-tower">Upgrade Tower</button>
                 <button id="sell-tower">Sell Tower</button>
                 <button id="back-to-menu">Back to Menu</button>
+            </div>
+            <div class="abilities">
+                <button id="freeze-ability" class="ability-btn" data-ability="freeze">
+                    <div class="ability-icon">❄️</div>
+                    <div class="ability-info">
+                        <div class="ability-name">Freeze Wave</div>
+                        <div class="ability-cooldown">30s</div>
+                    </div>
+                </button>
+                <button id="heal-ability" class="ability-btn" data-ability="heal">
+                    <div class="ability-icon">💚</div>
+                    <div class="ability-info">
+                        <div class="ability-name">Heal Base</div>
+                        <div class="ability-cooldown">45s</div>
+                    </div>
+                </button>
+                <button id="money-ability" class="ability-btn" data-ability="money">
+                    <div class="ability-icon">💰</div>
+                    <div class="ability-info">
+                        <div class="ability-name">Money Boost</div>
+                        <div class="ability-cooldown">60s</div>
+                    </div>
+                </button>
             </div>
         </div>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
