@@ -22,9 +22,10 @@ class TowerDefenseGame {
         
         // Tower types
         this.towerTypes = {
-            basic: { cost: 50, damage: 25, range: 80, fireRate: 1000, color: '#4a90e2' },
-            rapid: { cost: 100, damage: 15, range: 70, fireRate: 500, color: '#ff6b6b' },
-            heavy: { cost: 200, damage: 60, range: 100, fireRate: 2000, color: '#ffd700' }
+            basic: { cost: 50, damage: 25, range: 80, fireRate: 1000, color: '#4a90e2', type: 'combat' },
+            rapid: { cost: 100, damage: 15, range: 70, fireRate: 500, color: '#ff6b6b', type: 'combat' },
+            heavy: { cost: 200, damage: 60, range: 100, fireRate: 2000, color: '#ffd700', type: 'combat' },
+            money: { cost: 150, damage: 0, range: 0, fireRate: 0, color: '#32cd32', type: 'money', income: 25 }
         };
         
         // Enemy types
@@ -129,7 +130,7 @@ class TowerDefenseGame {
     placeTower(x, y) {
         const towerType = this.towerTypes[this.selectedTowerType];
         
-        // Check if position is valid (not on path, not too close to other towers)
+        // Check if position is valid (not too close to other towers) and affordable
         if (this.isValidTowerPosition(x, y) && this.money >= towerType.cost) {
             this.towers.push(new Tower(x, y, this.selectedTowerType, towerType));
             this.money -= towerType.cost;
@@ -140,13 +141,7 @@ class TowerDefenseGame {
     }
     
     isValidTowerPosition(x, y) {
-        // Check distance from path
-        for (let i = 0; i < this.path.length - 1; i++) {
-            const dist = this.distanceToLineSegment(x, y, this.path[i], this.path[i + 1]);
-            if (dist < 30) return false;
-        }
-        
-        // Check distance from other towers
+        // Only check distance from other towers (allow placement anywhere including on path)
         for (const tower of this.towers) {
             if (Math.sqrt((x - tower.x) ** 2 + (y - tower.y) ** 2) < 40) {
                 return false;
@@ -218,6 +213,15 @@ class TowerDefenseGame {
         // Update towers
         this.towers.forEach(tower => {
             tower.update(this.enemies, this.projectiles);
+            
+            // Handle money towers
+            if (tower.type === 'money' && !this.waveInProgress) {
+                // Generate money at the end of each wave
+                if (tower.shouldGenerateMoney()) {
+                    this.money += tower.income;
+                    tower.lastMoneyGeneration = Date.now();
+                }
+            }
         });
         
         // Update projectiles
@@ -423,6 +427,7 @@ class Tower {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.towerType = stats.type || 'combat';
         this.damage = stats.damage;
         this.range = stats.range;
         this.fireRate = stats.fireRate;
@@ -430,19 +435,30 @@ class Tower {
         this.radius = 15;
         this.lastShot = 0;
         this.target = null;
+        this.income = stats.income || 0;
+        this.lastMoneyGeneration = 0;
     }
     
     update(enemies, projectiles) {
         const now = Date.now();
         
-        // Find target
-        this.target = this.findTarget(enemies);
-        
-        // Shoot if target is in range and enough time has passed
-        if (this.target && now - this.lastShot >= this.fireRate) {
-            this.shoot(projectiles);
-            this.lastShot = now;
+        // Only handle combat towers
+        if (this.towerType === 'combat') {
+            // Find target
+            this.target = this.findTarget(enemies);
+            
+            // Shoot if target is in range and enough time has passed
+            if (this.target && now - this.lastShot >= this.fireRate) {
+                this.shoot(projectiles);
+                this.lastShot = now;
+            }
         }
+    }
+    
+    shouldGenerateMoney() {
+        const now = Date.now();
+        // Generate money every 3 seconds when wave is not in progress
+        return now - this.lastMoneyGeneration >= 3000;
     }
     
     findTarget(enemies) {
@@ -481,8 +497,26 @@ class Tower {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Draw range circle when hovering
-        if (this.target) {
+        // Draw money tower special effect
+        if (this.towerType === 'money') {
+            // Draw dollar sign
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', this.x, this.y);
+            
+            // Draw pulsing effect
+            const pulse = Math.sin(Date.now() * 0.005) * 0.2 + 0.8;
+            ctx.strokeStyle = `rgba(255, 215, 0, ${pulse})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        // Draw range circle when hovering (only for combat towers)
+        if (this.target && this.towerType === 'combat') {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 2;
             ctx.beginPath();
