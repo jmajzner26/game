@@ -1,4 +1,4 @@
-// 67 Tetris Game Logic
+// 67 Tetris Game Logic - Strategic Block Placement
 class TetrisGame {
     constructor() {
         this.canvas = document.getElementById('tetris-canvas');
@@ -16,16 +16,19 @@ class TetrisGame {
         this.gameRunning = false;
         this.gamePaused = false;
         this.targetScore = 67;
+        this.selectedPiece = null;
+        this.pieceInventory = [];
+        this.maxInventorySize = 5;
         
         // Board dimensions
         this.boardWidth = 10;
         this.boardHeight = 20;
         this.blockSize = 30;
         
-        // Game timing
-        this.dropTime = 0;
-        this.dropInterval = 1000; // 1 second initially
-        this.lastTime = 0;
+        // Mouse/touch interaction
+        this.mousePos = { x: 0, y: 0 };
+        this.isDragging = false;
+        this.dragOffset = { x: 0, y: 0 };
         
         // Tetris pieces (Tetrominoes)
         this.pieces = {
@@ -101,34 +104,70 @@ class TetrisGame {
             }
         }
         
+        // Initialize piece inventory
+        this.pieceInventory = [];
+        for (let i = 0; i < this.maxInventorySize; i++) {
+            this.pieceInventory.push(this.createRandomPiece());
+        }
+        
         this.setupEventListeners();
         this.updateUI();
+        this.draw();
     }
     
     setupEventListeners() {
+        // Mouse events for piece placement
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (!this.gameRunning) return;
+            this.handleMouseDown(e);
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+            if (!this.gameRunning) return;
+            this.handleMouseMove(e);
+        });
+        
+        this.canvas.addEventListener('mouseup', (e) => {
+            if (!this.gameRunning) return;
+            this.handleMouseUp(e);
+        });
+        
+        // Touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (!this.gameRunning) return;
+            e.preventDefault();
+            this.handleMouseDown(e.touches[0]);
+        });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (!this.gameRunning) return;
+            e.preventDefault();
+            this.handleMouseMove(e.touches[0]);
+        });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            if (!this.gameRunning) return;
+            e.preventDefault();
+            this.handleMouseUp(e);
+        });
+        
+        // Keyboard events
         document.addEventListener('keydown', (e) => {
             if (!this.gameRunning || this.gamePaused) return;
             
             switch(e.key) {
-                case 'ArrowLeft':
-                    this.movePiece(-1, 0);
-                    break;
-                case 'ArrowRight':
-                    this.movePiece(1, 0);
-                    break;
-                case 'ArrowDown':
-                    this.movePiece(0, 1);
-                    break;
                 case 'ArrowUp':
-                    this.rotatePiece();
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    this.hardDrop();
+                    if (this.selectedPiece) {
+                        this.rotateSelectedPiece();
+                    }
                     break;
                 case 'p':
                 case 'P':
                     this.togglePause();
+                    break;
+                case 'r':
+                case 'R':
+                    this.restartGame();
                     break;
             }
         });
@@ -152,7 +191,7 @@ class TetrisGame {
         this.score = 0;
         this.lines = 0;
         this.level = 1;
-        this.dropInterval = 1000;
+        this.selectedPiece = null;
         
         // Clear board
         for (let y = 0; y < this.boardHeight; y++) {
@@ -161,17 +200,167 @@ class TetrisGame {
             }
         }
         
-        this.spawnPiece();
-        this.spawnNextPiece();
+        // Refill inventory
+        this.pieceInventory = [];
+        for (let i = 0; i < this.maxInventorySize; i++) {
+            this.pieceInventory.push(this.createRandomPiece());
+        }
+        
         this.hideOverlay();
         this.updateUI();
-        this.gameLoop();
+        this.draw();
     }
     
     restartGame() {
-        this.showOverlay('67 Tetris', 'Press SPACE to start!');
+        this.showOverlay('67 Tetris', 'Click pieces to place them strategically!');
         this.gameRunning = false;
         this.gamePaused = false;
+    }
+    
+    // Mouse handling methods
+    handleMouseDown(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        this.mousePos.x = e.clientX - rect.left;
+        this.mousePos.y = e.clientY - rect.top;
+        
+        // Check if clicking on a piece in inventory
+        const inventoryY = this.canvas.height + 20;
+        const pieceWidth = 60;
+        const pieceSpacing = 80;
+        
+        for (let i = 0; i < this.pieceInventory.length; i++) {
+            const pieceX = i * pieceSpacing + 20;
+            const pieceY = inventoryY;
+            
+            if (this.mousePos.x >= pieceX && this.mousePos.x <= pieceX + pieceWidth &&
+                this.mousePos.y >= pieceY && this.mousePos.y <= pieceY + pieceWidth) {
+                
+                this.selectedPiece = {
+                    piece: this.pieceInventory[i],
+                    index: i,
+                    x: this.mousePos.x,
+                    y: this.mousePos.y
+                };
+                this.isDragging = true;
+                this.dragOffset.x = 0;
+                this.dragOffset.y = 0;
+                break;
+            }
+        }
+    }
+    
+    handleMouseMove(e) {
+        if (!this.isDragging || !this.selectedPiece) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        this.mousePos.x = e.clientX - rect.left;
+        this.mousePos.y = e.clientY - rect.top;
+        
+        this.selectedPiece.x = this.mousePos.x;
+        this.selectedPiece.y = this.mousePos.y;
+        
+        this.draw();
+    }
+    
+    handleMouseUp(e) {
+        if (!this.isDragging || !this.selectedPiece) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        this.mousePos.x = e.clientX - rect.left;
+        this.mousePos.y = e.clientY - rect.top;
+        
+        // Try to place the piece
+        const boardX = Math.floor(this.mousePos.x / this.blockSize);
+        const boardY = Math.floor(this.mousePos.y / this.blockSize);
+        
+        if (this.canPlacePiece(this.selectedPiece.piece, boardX, boardY)) {
+            this.placePiece(this.selectedPiece.piece, boardX, boardY);
+            this.pieceInventory.splice(this.selectedPiece.index, 1);
+            
+            // Add new piece to inventory
+            this.pieceInventory.push(this.createRandomPiece());
+            
+            // Check for completed lines
+            this.clearLines();
+            
+            // Check for victory
+            if (this.score >= this.targetScore) {
+                this.victory();
+                return;
+            }
+            
+            this.updateUI();
+        }
+        
+        this.selectedPiece = null;
+        this.isDragging = false;
+        this.draw();
+    }
+    
+    canPlacePiece(piece, x, y) {
+        for (let py = 0; py < piece.shape.length; py++) {
+            for (let px = 0; px < piece.shape[py].length; px++) {
+                if (piece.shape[py][px]) {
+                    const newX = x + px;
+                    const newY = y + py;
+                    
+                    // Check boundaries
+                    if (newX < 0 || newX >= this.boardWidth || newY < 0 || newY >= this.boardHeight) {
+                        return false;
+                    }
+                    
+                    // Check collision with existing pieces
+                    if (this.board[newY][newX] !== 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    
+    placePiece(piece, x, y) {
+        for (let py = 0; py < piece.shape.length; py++) {
+            for (let px = 0; px < piece.shape[py].length; px++) {
+                if (piece.shape[py][px]) {
+                    const newX = x + px;
+                    const newY = y + py;
+                    this.board[newY][newX] = piece.color;
+                }
+            }
+        }
+    }
+    
+    rotateSelectedPiece() {
+        if (!this.selectedPiece) return;
+        
+        const rotated = this.rotateMatrix(this.selectedPiece.piece.shape);
+        this.selectedPiece.piece.shape = rotated;
+        this.draw();
+    }
+    
+    createRandomPiece() {
+        const type = this.pieceTypes[Math.floor(Math.random() * this.pieceTypes.length)];
+        const piece = this.pieces[type];
+        
+        return {
+            shape: piece.shape,
+            color: piece.color
+        };
+    }
+    
+    rotateMatrix(matrix) {
+        const N = matrix.length;
+        const rotated = [];
+        
+        for (let i = 0; i < N; i++) {
+            rotated[i] = [];
+            for (let j = 0; j < N; j++) {
+                rotated[i][j] = matrix[N - 1 - j][i];
+            }
+        }
+        
+        return rotated;
     }
     
     togglePause() {
@@ -328,31 +517,10 @@ class TetrisGame {
             
             // Increase level every 10 lines
             this.level = Math.floor(this.lines / 10) + 1;
-            this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 100);
             
             this.updateUI();
             this.animateScore();
         }
-    }
-    
-    gameLoop(currentTime = 0) {
-        if (!this.gameRunning || this.gamePaused) return;
-        
-        const deltaTime = currentTime - this.lastTime;
-        this.lastTime = currentTime;
-        
-        this.dropTime += deltaTime;
-        
-        if (this.dropTime >= this.dropInterval) {
-            this.movePiece(0, 1);
-            if (this.checkCollision(this.currentPiece, this.currentPiece.x, this.currentPiece.y + 1)) {
-                this.placePiece();
-            }
-            this.dropTime = 0;
-        }
-        
-        this.draw();
-        requestAnimationFrame((time) => this.gameLoop(time));
     }
     
     draw() {
@@ -363,13 +531,16 @@ class TetrisGame {
         // Draw board
         this.drawBoard();
         
-        // Draw current piece
-        if (this.currentPiece) {
-            this.drawPiece(this.currentPiece);
-        }
-        
         // Draw grid
         this.drawGrid();
+        
+        // Draw piece inventory
+        this.drawPieceInventory();
+        
+        // Draw selected piece being dragged
+        if (this.selectedPiece && this.isDragging) {
+            this.drawDraggedPiece();
+        }
     }
     
     drawBoard() {
@@ -429,29 +600,85 @@ class TetrisGame {
         }
     }
     
-    drawNextPiece() {
-        if (!this.nextPiece) return;
+    drawPieceInventory() {
+        const inventoryY = this.canvas.height + 20;
+        const pieceWidth = 60;
+        const pieceSpacing = 80;
         
-        this.nextCtx.fillStyle = '#000';
-        this.nextCtx.fillRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+        // Draw inventory background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.fillRect(0, inventoryY - 10, this.canvas.width, pieceWidth + 20);
         
+        // Draw each piece in inventory
+        for (let i = 0; i < this.pieceInventory.length; i++) {
+            const piece = this.pieceInventory[i];
+            const pieceX = i * pieceSpacing + 20;
+            const pieceY = inventoryY;
+            
+            // Draw piece background
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            this.ctx.fillRect(pieceX, pieceY, pieceWidth, pieceWidth);
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(pieceX, pieceY, pieceWidth, pieceWidth);
+            
+            // Draw piece blocks
+            const blockSize = pieceWidth / 4;
+            const offsetX = pieceX + (pieceWidth - piece.shape[0].length * blockSize) / 2;
+            const offsetY = pieceY + (pieceWidth - piece.shape.length * blockSize) / 2;
+            
+            this.ctx.fillStyle = piece.color;
+            
+            for (let py = 0; py < piece.shape.length; py++) {
+                for (let px = 0; px < piece.shape[py].length; px++) {
+                    if (piece.shape[py][px]) {
+                        const x = offsetX + px * blockSize;
+                        const y = offsetY + py * blockSize;
+                        
+                        this.ctx.fillRect(x, y, blockSize, blockSize);
+                        
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.strokeRect(x, y, blockSize, blockSize);
+                    }
+                }
+            }
+        }
+    }
+    
+    drawDraggedPiece() {
+        if (!this.selectedPiece) return;
+        
+        const piece = this.selectedPiece.piece;
         const blockSize = 20;
-        const offsetX = (this.nextCanvas.width - this.nextPiece.shape[0].length * blockSize) / 2;
-        const offsetY = (this.nextCanvas.height - this.nextPiece.shape.length * blockSize) / 2;
+        const offsetX = this.selectedPiece.x - (piece.shape[0].length * blockSize) / 2;
+        const offsetY = this.selectedPiece.y - (piece.shape.length * blockSize) / 2;
         
-        this.nextCtx.fillStyle = this.nextPiece.color;
+        // Draw shadow
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        for (let py = 0; py < piece.shape.length; py++) {
+            for (let px = 0; px < piece.shape[py].length; px++) {
+                if (piece.shape[py][px]) {
+                    const x = offsetX + px * blockSize + 2;
+                    const y = offsetY + py * blockSize + 2;
+                    this.ctx.fillRect(x, y, blockSize, blockSize);
+                }
+            }
+        }
         
-        for (let py = 0; py < this.nextPiece.shape.length; py++) {
-            for (let px = 0; px < this.nextPiece.shape[py].length; px++) {
-                if (this.nextPiece.shape[py][px]) {
+        // Draw piece
+        this.ctx.fillStyle = piece.color;
+        for (let py = 0; py < piece.shape.length; py++) {
+            for (let px = 0; px < piece.shape[py].length; px++) {
+                if (piece.shape[py][px]) {
                     const x = offsetX + px * blockSize;
                     const y = offsetY + py * blockSize;
                     
-                    this.nextCtx.fillRect(x, y, blockSize, blockSize);
+                    this.ctx.fillRect(x, y, blockSize, blockSize);
                     
-                    this.nextCtx.strokeStyle = '#333';
-                    this.nextCtx.lineWidth = 1;
-                    this.nextCtx.strokeRect(x, y, blockSize, blockSize);
+                    this.ctx.strokeStyle = '#333';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(x, y, blockSize, blockSize);
                 }
             }
         }
