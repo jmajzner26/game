@@ -84,6 +84,19 @@ body {
     border-color: #87ceeb;
 }
 
+.tower-option.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.tower-option[draggable="true"] {
+    cursor: grab;
+}
+
+.tower-option[draggable="true"]:active {
+    cursor: grabbing;
+}
+
 .tower-icon {
     font-size: 24px;
     width: 30px;

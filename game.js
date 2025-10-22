@@ -13,6 +13,8 @@ class TowerDefenseGame {
         this.wave = 1;
         this.waveInProgress = false;
         this.selectedTowerType = null;
+        this.draggedTowerType = null;
+        this.dragPreview = null;
         
         // Game objects
         this.towers = [];
@@ -56,7 +58,7 @@ class TowerDefenseGame {
     }
     
     setupEventListeners() {
-        // Canvas click for tower placement
+        // Canvas events for tower placement
         this.canvas.addEventListener('click', (e) => {
             if (this.gameState === 'playing' && this.selectedTowerType) {
                 const rect = this.canvas.getBoundingClientRect();
@@ -65,9 +67,38 @@ class TowerDefenseGame {
                 this.placeTower(x, y);
             }
         });
+
+        this.canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        this.canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (this.gameState === 'playing' && this.draggedTowerType) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                this.selectedTowerType = this.draggedTowerType;
+                this.placeTower(x, y);
+                this.draggedTowerType = null;
+                this.dragPreview = null;
+            }
+        });
+
+        this.canvas.addEventListener('mousemove', (e) => {
+            if (this.draggedTowerType) {
+                const rect = this.canvas.getBoundingClientRect();
+                this.dragPreview = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top,
+                    type: this.draggedTowerType
+                };
+            }
+        });
         
-        // Tower selection
+        // Tower selection and drag events
         document.querySelectorAll('.tower-option').forEach(option => {
+            // Click to select (original functionality)
             option.addEventListener('click', () => {
                 const towerType = option.dataset.tower;
                 if (this.money >= this.towerTypes[towerType].cost) {
@@ -75,6 +106,26 @@ class TowerDefenseGame {
                     document.querySelectorAll('.tower-option').forEach(opt => opt.classList.remove('selected'));
                     option.classList.add('selected');
                 }
+            });
+
+            // Drag start
+            option.addEventListener('dragstart', (e) => {
+                const towerType = option.dataset.tower;
+                if (this.money >= this.towerTypes[towerType].cost) {
+                    this.draggedTowerType = towerType;
+                    option.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'copy';
+                    e.dataTransfer.setData('text/plain', towerType);
+                } else {
+                    e.preventDefault();
+                }
+            });
+
+            // Drag end
+            option.addEventListener('dragend', (e) => {
+                option.classList.remove('dragging');
+                this.draggedTowerType = null;
+                this.dragPreview = null;
             });
         });
         
@@ -272,9 +323,16 @@ class TowerDefenseGame {
         // Draw projectiles
         this.projectiles.forEach(projectile => projectile.render(this.ctx));
         
+        // Draw drag preview
+        if (this.dragPreview) {
+            this.drawDragPreview(this.dragPreview.x, this.dragPreview.y, this.dragPreview.type);
+        }
+        
         // Draw tower placement preview
         if (this.selectedTowerType) {
             this.canvas.style.cursor = 'crosshair';
+        } else if (this.draggedTowerType) {
+            this.canvas.style.cursor = 'grabbing';
         } else {
             this.canvas.style.cursor = 'default';
         }
@@ -305,6 +363,52 @@ class TowerDefenseGame {
             this.ctx.lineTo(this.path[i].x, this.path[i].y);
         }
         
+        this.ctx.stroke();
+    }
+    
+    drawDragPreview(x, y, towerType) {
+        const towerStats = this.towerTypes[towerType];
+        
+        // Draw semi-transparent tower preview
+        this.ctx.globalAlpha = 0.6;
+        this.ctx.fillStyle = towerStats.color;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 15, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Draw tower icon
+        this.ctx.globalAlpha = 0.8;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = 'bold 12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
+        let icon = '🔫';
+        if (towerType === 'rapid') icon = '⚡';
+        else if (towerType === 'heavy') icon = '💥';
+        else if (towerType === 'money') icon = '💰';
+        
+        this.ctx.fillText(icon, x, y);
+        
+        // Draw range circle for combat towers
+        if (towerStats.type === 'combat') {
+            this.ctx.globalAlpha = 0.3;
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, towerStats.range, 0, Math.PI * 2);
+            this.ctx.stroke();
+        }
+        
+        // Reset alpha
+        this.ctx.globalAlpha = 1.0;
+        
+        // Draw validity indicator
+        const isValid = this.isValidTowerPosition(x, y);
+        this.ctx.strokeStyle = isValid ? '#00ff00' : '#ff0000';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 18, 0, Math.PI * 2);
         this.ctx.stroke();
     }
     
