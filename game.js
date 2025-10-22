@@ -22,20 +22,63 @@ class TowerDefenseGame {
         this.projectiles = [];
         this.path = [];
         
-        // Tower types
+        // Tower types with enhanced stats and descriptions
         this.towerTypes = {
-            basic: { cost: 50, damage: 25, range: 80, fireRate: 1000, color: '#4a90e2', type: 'combat' },
-            rapid: { cost: 100, damage: 15, range: 70, fireRate: 500, color: '#ff6b6b', type: 'combat' },
-            heavy: { cost: 200, damage: 60, range: 100, fireRate: 2000, color: '#ffd700', type: 'combat' },
-            money: { cost: 150, damage: 0, range: 0, fireRate: 0, color: '#32cd32', type: 'money', income: 25 }
+            basic: { 
+                cost: 50, damage: 25, range: 80, fireRate: 1000, color: '#4a90e2', type: 'combat',
+                description: 'Standard defensive tower with balanced stats.',
+                icon: '🔫'
+            },
+            rapid: { 
+                cost: 100, damage: 15, range: 70, fireRate: 500, color: '#ff6b6b', type: 'combat',
+                description: 'Fast-firing tower perfect for swarms of weak enemies.',
+                icon: '⚡'
+            },
+            heavy: { 
+                cost: 200, damage: 60, range: 100, fireRate: 2000, color: '#ffd700', type: 'combat',
+                description: 'Powerful cannon that deals massive damage to tough enemies.',
+                icon: '💥'
+            },
+            money: { 
+                cost: 150, damage: 0, range: 0, fireRate: 0, color: '#32cd32', type: 'money', income: 25,
+                description: 'Generates passive income between waves. Essential for economy!',
+                icon: '💰'
+            },
+            ice: { 
+                cost: 120, damage: 20, range: 90, fireRate: 1200, color: '#87ceeb', type: 'combat', slowEffect: 0.5,
+                description: 'Slows enemies by 50% for 3 seconds. Great for crowd control.',
+                icon: '❄️'
+            },
+            poison: { 
+                cost: 180, damage: 10, range: 85, fireRate: 800, color: '#9acd32', type: 'combat', poisonDamage: 5, poisonDuration: 5000,
+                description: 'Poisons enemies dealing damage over time. Stacks with other towers.',
+                icon: '☠️'
+            },
+            laser: { 
+                cost: 300, damage: 80, range: 120, fireRate: 3000, color: '#ff1493', type: 'combat', pierce: true,
+                description: 'High-tech laser that pierces through multiple enemies.',
+                icon: '🔴'
+            },
+            shield: { 
+                cost: 250, damage: 0, range: 0, fireRate: 0, color: '#c0c0c0', type: 'support', shieldAmount: 20,
+                description: 'Provides shields to nearby towers, reducing incoming damage.',
+                icon: '🛡️'
+            }
         };
         
-        // Enemy types
+        // Enhanced enemy types
         this.enemyTypes = {
-            basic: { health: 50, speed: 1, reward: 10, color: '#ff4444' },
-            fast: { health: 30, speed: 2, reward: 15, color: '#44ff44' },
-            tank: { health: 150, speed: 0.5, reward: 25, color: '#4444ff' }
+            basic: { health: 50, speed: 1, reward: 10, color: '#ff4444', size: 12 },
+            fast: { health: 30, speed: 2, reward: 15, color: '#44ff44', size: 10 },
+            tank: { health: 150, speed: 0.5, reward: 25, color: '#4444ff', size: 16 },
+            flying: { health: 40, speed: 1.5, reward: 20, color: '#ff69b4', size: 14, flying: true },
+            armored: { health: 200, speed: 0.8, reward: 35, color: '#8b4513', size: 18, armor: 0.3 },
+            boss: { health: 500, speed: 0.3, reward: 100, color: '#8b0000', size: 25, boss: true }
         };
+        
+        // Tooltip system
+        this.tooltip = document.getElementById('tooltip');
+        this.tooltipTimeout = null;
         
         this.setupPath();
         this.setupEventListeners();
@@ -127,6 +170,22 @@ class TowerDefenseGame {
                 this.draggedTowerType = null;
                 this.dragPreview = null;
             });
+
+            // Tooltip events
+            option.addEventListener('mouseenter', (e) => {
+                const towerType = option.dataset.tower;
+                this.showTooltip(e, towerType);
+            });
+
+            option.addEventListener('mouseleave', () => {
+                this.hideTooltip();
+            });
+
+            option.addEventListener('mousemove', (e) => {
+                if (this.tooltip.classList.contains('show')) {
+                    this.updateTooltipPosition(e);
+                }
+            });
         });
         
         // Control buttons
@@ -157,13 +216,35 @@ class TowerDefenseGame {
     
     spawnEnemies() {
         const enemyCount = 5 + this.wave * 2;
-        const spawnDelay = 1000;
+        const spawnDelay = 800;
         
         for (let i = 0; i < enemyCount; i++) {
             setTimeout(() => {
                 let enemyType = 'basic';
-                if (this.wave > 3) enemyType = Math.random() < 0.3 ? 'fast' : 'basic';
-                if (this.wave > 6) enemyType = Math.random() < 0.2 ? 'tank' : enemyType;
+                
+                // Enhanced enemy spawning based on wave
+                if (this.wave > 2) {
+                    const rand = Math.random();
+                    if (rand < 0.3) enemyType = 'fast';
+                    else if (rand < 0.5) enemyType = 'basic';
+                }
+                
+                if (this.wave > 4) {
+                    const rand = Math.random();
+                    if (rand < 0.2) enemyType = 'flying';
+                    else if (rand < 0.3) enemyType = 'tank';
+                }
+                
+                if (this.wave > 6) {
+                    const rand = Math.random();
+                    if (rand < 0.15) enemyType = 'armored';
+                    else if (rand < 0.2) enemyType = 'tank';
+                }
+                
+                // Boss every 10 waves
+                if (this.wave % 10 === 0 && i === enemyCount - 1) {
+                    enemyType = 'boss';
+                }
                 
                 this.enemies.push(new Enemy(this.path[0].x, this.path[0].y, enemyType, this.enemyTypes[enemyType]));
                 
@@ -176,6 +257,51 @@ class TowerDefenseGame {
                 }
             }, i * spawnDelay);
         }
+    }
+    
+    showTooltip(event, towerType) {
+        const towerStats = this.towerTypes[towerType];
+        const tooltipTitle = this.tooltip.querySelector('.tooltip-title');
+        const tooltipStats = this.tooltip.querySelector('.tooltip-stats');
+        const tooltipDescription = this.tooltip.querySelector('.tooltip-description');
+        
+        tooltipTitle.textContent = `${towerStats.icon} ${towerType.charAt(0).toUpperCase() + towerType.slice(1)} Tower`;
+        
+        let statsText = '';
+        if (towerStats.type === 'combat') {
+            statsText = `Damage: ${towerStats.damage}\nRange: ${towerStats.range}\nFire Rate: ${(towerStats.fireRate / 1000).toFixed(1)}s`;
+            if (towerStats.slowEffect) statsText += `\nSlow: ${(towerStats.slowEffect * 100)}%`;
+            if (towerStats.poisonDamage) statsText += `\nPoison: ${towerStats.poisonDamage}/s`;
+            if (towerStats.pierce) statsText += '\nPierces enemies';
+        } else if (towerStats.type === 'money') {
+            statsText = `Income: $${towerStats.income}/3s`;
+        } else if (towerStats.type === 'support') {
+            statsText = `Shield: ${towerStats.shieldAmount}`;
+        }
+        
+        tooltipStats.textContent = statsText;
+        tooltipDescription.textContent = towerStats.description;
+        
+        this.updateTooltipPosition(event);
+        this.tooltip.classList.add('show');
+        
+        // Clear any existing timeout
+        if (this.tooltipTimeout) {
+            clearTimeout(this.tooltipTimeout);
+        }
+    }
+    
+    hideTooltip() {
+        this.tooltipTimeout = setTimeout(() => {
+            this.tooltip.classList.remove('show');
+        }, 100);
+    }
+    
+    updateTooltipPosition(event) {
+        const x = event.clientX + 10;
+        const y = event.clientY - 10;
+        this.tooltip.style.left = x + 'px';
+        this.tooltip.style.top = y + 'px';
     }
     
     placeTower(x, y) {
@@ -277,18 +403,44 @@ class TowerDefenseGame {
         
         // Update projectiles
         this.projectiles = this.projectiles.filter(projectile => {
-            projectile.update();
+            const shouldContinue = projectile.update();
+            if (!shouldContinue) return false;
             
             // Check collision with enemies
             for (let i = this.enemies.length - 1; i >= 0; i--) {
                 const enemy = this.enemies[i];
                 if (this.checkCollision(projectile, enemy)) {
+                    // Apply damage
                     enemy.takeDamage(projectile.damage);
+                    
+                    // Apply special effects based on tower type
+                    if (projectile.towerType === 'ice') {
+                        enemy.applySlow(0.5, 3000); // 50% slow for 3 seconds
+                    } else if (projectile.towerType === 'poison') {
+                        enemy.applyPoison(5, 5000); // 5 damage/sec for 5 seconds
+                    }
+                    
+                    // Handle laser piercing
+                    if (projectile instanceof LaserProjectile) {
+                        if (!projectile.hitEnemies.includes(enemy)) {
+                            projectile.hitEnemies.push(enemy);
+                            // Continue piercing if not too many hits
+                            if (projectile.hitEnemies.length < 3) {
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    // Remove enemy if dead
                     if (enemy.health <= 0) {
                         this.money += enemy.reward;
                         this.enemies.splice(i, 1);
                     }
-                    return false;
+                    
+                    // Remove projectile unless it's piercing
+                    if (!(projectile instanceof LaserProjectile)) {
+                        return false;
+                    }
                 }
             }
             
@@ -307,9 +459,16 @@ class TowerDefenseGame {
     }
     
     render() {
-        // Clear canvas
-        this.ctx.fillStyle = '#2d5016';
+        // Clear canvas with enhanced background
+        const gradient = this.ctx.createLinearGradient(0, 0, this.width, this.height);
+        gradient.addColorStop(0, '#1a4d3a');
+        gradient.addColorStop(0.5, '#2d5016');
+        gradient.addColorStop(1, '#1a4d3a');
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
+        
+        // Draw atmospheric effects
+        this.drawAtmosphere();
         
         // Draw path
         this.drawPath();
@@ -328,6 +487,9 @@ class TowerDefenseGame {
             this.drawDragPreview(this.dragPreview.x, this.dragPreview.y, this.dragPreview.type);
         }
         
+        // Draw particle effects
+        this.drawParticles();
+        
         // Draw tower placement preview
         if (this.selectedTowerType) {
             this.canvas.style.cursor = 'crosshair';
@@ -335,6 +497,54 @@ class TowerDefenseGame {
             this.canvas.style.cursor = 'grabbing';
         } else {
             this.canvas.style.cursor = 'default';
+        }
+    }
+    
+    drawAtmosphere() {
+        // Draw floating particles
+        const time = Date.now() * 0.001;
+        for (let i = 0; i < 20; i++) {
+            const x = (Math.sin(time + i) * 100 + i * 40) % this.width;
+            const y = (Math.cos(time * 0.5 + i) * 50 + i * 30) % this.height;
+            const alpha = Math.sin(time + i) * 0.3 + 0.3;
+            
+            this.ctx.globalAlpha = alpha;
+            this.ctx.fillStyle = '#87ceeb';
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 1, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1;
+        
+        // Draw ambient lighting
+        const radialGradient = this.ctx.createRadialGradient(
+            this.width * 0.3, this.height * 0.7, 0,
+            this.width * 0.3, this.height * 0.7, 200
+        );
+        radialGradient.addColorStop(0, 'rgba(0, 255, 150, 0.1)');
+        radialGradient.addColorStop(1, 'rgba(0, 255, 150, 0)');
+        this.ctx.fillStyle = radialGradient;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+    }
+    
+    drawParticles() {
+        // Draw explosion particles for destroyed enemies
+        const time = Date.now();
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const projectile = this.projectiles[i];
+            if (projectile.trail && projectile.trail.length > 0) {
+                this.ctx.save();
+                for (let j = 0; j < projectile.trail.length; j++) {
+                    const trail = projectile.trail[j];
+                    const alpha = (j + 1) / projectile.trail.length;
+                    this.ctx.globalAlpha = alpha * 0.6;
+                    this.ctx.fillStyle = projectile.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(trail.x, trail.y, 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.restore();
+            }
         }
     }
     
@@ -463,7 +673,7 @@ class TowerDefenseGame {
     }
 }
 
-// Enemy class
+// Enhanced Enemy class
 class Enemy {
     constructor(x, y, type, stats) {
         this.x = x;
@@ -474,15 +684,41 @@ class Enemy {
         this.speed = stats.speed;
         this.reward = stats.reward;
         this.color = stats.color;
-        this.radius = 12;
+        this.radius = stats.size || 12;
         this.pathIndex = 0;
         this.lastUpdate = Date.now();
+        
+        // Enhanced properties
+        this.armor = stats.armor || 0;
+        this.flying = stats.flying || false;
+        this.boss = stats.boss || false;
+        this.slowEffect = 0;
+        this.slowDuration = 0;
+        this.poisonDamage = 0;
+        this.poisonDuration = 0;
+        this.shield = 0;
     }
     
     update() {
         const now = Date.now();
         const deltaTime = now - this.lastUpdate;
         this.lastUpdate = now;
+        
+        // Apply poison damage
+        if (this.poisonDuration > 0) {
+            this.poisonDuration -= deltaTime;
+            if (this.poisonDuration > 0) {
+                this.takeDamage(this.poisonDamage * deltaTime / 1000, false);
+            }
+        }
+        
+        // Apply slow effect
+        if (this.slowDuration > 0) {
+            this.slowDuration -= deltaTime;
+            if (this.slowDuration <= 0) {
+                this.slowEffect = 0;
+            }
+        }
         
         if (this.pathIndex < game.path.length - 1) {
             const target = game.path[this.pathIndex + 1];
@@ -493,39 +729,142 @@ class Enemy {
             if (distance < 5) {
                 this.pathIndex++;
             } else {
-                const moveDistance = this.speed * deltaTime * 0.1;
+                const currentSpeed = this.speed * (1 - this.slowEffect);
+                const moveDistance = currentSpeed * deltaTime * 0.1;
                 this.x += (dx / distance) * moveDistance;
                 this.y += (dy / distance) * moveDistance;
             }
         }
     }
     
-    takeDamage(damage) {
-        this.health -= damage;
+    takeDamage(damage, applyArmor = true) {
+        let actualDamage = damage;
+        
+        // Apply armor reduction
+        if (applyArmor && this.armor > 0) {
+            actualDamage *= (1 - this.armor);
+        }
+        
+        // Apply shield
+        if (this.shield > 0) {
+            const shieldAbsorbed = Math.min(actualDamage, this.shield);
+            this.shield -= shieldAbsorbed;
+            actualDamage -= shieldAbsorbed;
+        }
+        
+        this.health -= actualDamage;
+    }
+    
+    applySlow(slowAmount, duration) {
+        this.slowEffect = Math.max(this.slowEffect, slowAmount);
+        this.slowDuration = Math.max(this.slowDuration, duration);
+    }
+    
+    applyPoison(damage, duration) {
+        this.poisonDamage = Math.max(this.poisonDamage, damage);
+        this.poisonDuration = Math.max(this.poisonDuration, duration);
+    }
+    
+    applyShield(amount) {
+        this.shield += amount;
     }
     
     render(ctx) {
-        // Draw enemy body
+        // Draw enemy body with enhanced visuals
+        ctx.save();
+        
+        // Boss enemies get special effects
+        if (this.boss) {
+            const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+            ctx.globalAlpha = pulse;
+            
+            // Boss aura
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        // Flying enemies get wings
+        if (this.flying) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(this.x - 8, this.y - 5, 3, 0, Math.PI * 2);
+            ctx.arc(this.x + 8, this.y - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Main body
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Draw health bar
-        const barWidth = 20;
-        const barHeight = 4;
-        const barX = this.x - barWidth / 2;
-        const barY = this.y - this.radius - 8;
+        // Armor indicator
+        if (this.armor > 0) {
+            ctx.strokeStyle = '#c0c0c0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
         
+        // Shield indicator
+        if (this.shield > 0) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        // Status effects
+        if (this.slowEffect > 0) {
+            ctx.fillStyle = '#87ceeb';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y - this.radius - 8, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        if (this.poisonDuration > 0) {
+            ctx.fillStyle = '#9acd32';
+            ctx.beginPath();
+            ctx.arc(this.x + this.radius + 8, this.y - this.radius - 8, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+        
+        // Enhanced health bar
+        const barWidth = this.boss ? 30 : 20;
+        const barHeight = this.boss ? 6 : 4;
+        const barX = this.x - barWidth / 2;
+        const barY = this.y - this.radius - 12;
+        
+        // Background
+        ctx.fillStyle = '#333';
+        ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+        
+        // Health bar
         ctx.fillStyle = '#ff0000';
         ctx.fillRect(barX, barY, barWidth, barHeight);
         
-        ctx.fillStyle = '#00ff00';
-        ctx.fillRect(barX, barY, (this.health / this.maxHealth) * barWidth, barHeight);
+        const healthPercent = this.health / this.maxHealth;
+        ctx.fillStyle = this.boss ? '#ff6600' : '#00ff00';
+        ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+        
+        // Boss crown
+        if (this.boss) {
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('👑', this.x, this.y - this.radius - 20);
+        }
     }
 }
 
-// Tower class
+// Enhanced Tower class
 class Tower {
     constructor(x, y, type, stats) {
         this.x = x;
@@ -541,12 +880,20 @@ class Tower {
         this.target = null;
         this.income = stats.income || 0;
         this.lastMoneyGeneration = 0;
+        
+        // Enhanced properties
+        this.slowEffect = stats.slowEffect || 0;
+        this.poisonDamage = stats.poisonDamage || 0;
+        this.poisonDuration = stats.poisonDuration || 0;
+        this.pierce = stats.pierce || false;
+        this.shieldAmount = stats.shieldAmount || 0;
+        this.level = 1;
+        this.experience = 0;
     }
     
     update(enemies, projectiles) {
         const now = Date.now();
         
-        // Only handle combat towers
         if (this.towerType === 'combat') {
             // Find target
             this.target = this.findTarget(enemies);
@@ -556,13 +903,10 @@ class Tower {
                 this.shoot(projectiles);
                 this.lastShot = now;
             }
+        } else if (this.towerType === 'support') {
+            // Apply shields to nearby towers
+            this.applyShields();
         }
-    }
-    
-    shouldGenerateMoney() {
-        const now = Date.now();
-        // Generate money every 3 seconds when wave is not in progress
-        return now - this.lastMoneyGeneration >= 3000;
     }
     
     findTarget(enemies) {
@@ -586,31 +930,73 @@ class Tower {
             const dy = this.target.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            projectiles.push(new Projectile(
-                this.x, this.y,
-                dx / distance, dy / distance,
-                this.damage, this.color
-            ));
+            if (this.pierce) {
+                // Laser pierces through multiple enemies
+                projectiles.push(new LaserProjectile(
+                    this.x, this.y,
+                    dx / distance, dy / distance,
+                    this.damage, this.color, this.target
+                ));
+            } else {
+                projectiles.push(new Projectile(
+                    this.x, this.y,
+                    dx / distance, dy / distance,
+                    this.damage, this.color, this.type
+                ));
+            }
         }
     }
     
+    applyShields() {
+        // Find nearby towers and apply shields
+        for (const tower of game.towers) {
+            if (tower !== this && tower.towerType === 'combat') {
+                const distance = Math.sqrt((tower.x - this.x) ** 2 + (tower.y - this.y) ** 2);
+                if (distance <= this.range) {
+                    // Apply shield effect (visual only for now)
+                    tower.hasShield = true;
+                }
+            }
+        }
+    }
+    
+    shouldGenerateMoney() {
+        const now = Date.now();
+        return now - this.lastMoneyGeneration >= 3000;
+    }
+    
     render(ctx) {
-        // Draw tower base
-        ctx.fillStyle = this.color;
+        ctx.save();
+        
+        // Draw tower base with enhanced visuals
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        gradient.addColorStop(0, this.color);
+        gradient.addColorStop(1, this.darkenColor(this.color, 0.3));
+        
+        ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Draw money tower special effect
+        // Draw tower border
+        ctx.strokeStyle = this.lightenColor(this.color, 0.3);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Draw tower icon
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        let icon = this.getTowerIcon();
+        ctx.fillText(icon, this.x, this.y);
+        
+        // Special effects for different tower types
         if (this.towerType === 'money') {
-            // Draw dollar sign
-            ctx.fillStyle = '#ffd700';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('$', this.x, this.y);
-            
-            // Draw pulsing effect
+            // Money tower pulsing effect
             const pulse = Math.sin(Date.now() * 0.005) * 0.2 + 0.8;
             ctx.strokeStyle = `rgba(255, 215, 0, ${pulse})`;
             ctx.lineWidth = 3;
@@ -619,7 +1005,44 @@ class Tower {
             ctx.stroke();
         }
         
-        // Draw range circle when hovering (only for combat towers)
+        if (this.towerType === 'ice') {
+            // Ice tower frost effect
+            ctx.strokeStyle = 'rgba(135, 206, 235, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (this.towerType === 'poison') {
+            // Poison tower toxic aura
+            ctx.strokeStyle = 'rgba(154, 205, 50, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (this.towerType === 'laser') {
+            // Laser tower energy field
+            const energy = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+            ctx.strokeStyle = `rgba(255, 20, 147, ${energy})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (this.towerType === 'support') {
+            // Shield tower protective aura
+            ctx.strokeStyle = 'rgba(192, 192, 192, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        // Draw range circle when targeting (only for combat towers)
         if (this.target && this.towerType === 'combat') {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 2;
@@ -627,12 +1050,53 @@ class Tower {
             ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
             ctx.stroke();
         }
+        
+        // Draw shield indicator
+        if (this.hasShield) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 6, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    getTowerIcon() {
+        const icons = {
+            basic: '🔫',
+            rapid: '⚡',
+            heavy: '💥',
+            money: '💰',
+            ice: '❄️',
+            poison: '☠️',
+            laser: '🔴',
+            shield: '🛡️'
+        };
+        return icons[this.type] || '🔫';
+    }
+    
+    darkenColor(color, amount) {
+        const hex = color.replace('#', '');
+        const r = Math.max(0, parseInt(hex.substr(0, 2), 16) * (1 - amount));
+        const g = Math.max(0, parseInt(hex.substr(2, 2), 16) * (1 - amount));
+        const b = Math.max(0, parseInt(hex.substr(4, 2), 16) * (1 - amount));
+        return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+    }
+    
+    lightenColor(color, amount) {
+        const hex = color.replace('#', '');
+        const r = Math.min(255, parseInt(hex.substr(0, 2), 16) + (255 - parseInt(hex.substr(0, 2), 16)) * amount);
+        const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + (255 - parseInt(hex.substr(2, 2), 16)) * amount);
+        const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + (255 - parseInt(hex.substr(4, 2), 16)) * amount);
+        return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
     }
 }
 
-// Projectile class
+// Enhanced Projectile class
 class Projectile {
-    constructor(x, y, vx, vy, damage, color) {
+    constructor(x, y, vx, vy, damage, color, towerType) {
         this.x = x;
         this.y = y;
         this.vx = vx * 3;
@@ -640,18 +1104,108 @@ class Projectile {
         this.damage = damage;
         this.color = color;
         this.radius = 3;
+        this.towerType = towerType;
+        this.trail = [];
     }
     
     update() {
+        // Add current position to trail
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 5) {
+            this.trail.shift();
+        }
+        
         this.x += this.vx;
         this.y += this.vy;
     }
     
     render(ctx) {
+        // Draw trail
+        ctx.save();
+        for (let i = 0; i < this.trail.length; i++) {
+            const alpha = (i + 1) / this.trail.length;
+            ctx.globalAlpha = alpha * 0.5;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.trail[i].x, this.trail[i].y, this.radius * alpha, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+        
+        // Draw main projectile
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Add glow effect
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 5;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+// Laser Projectile class for piercing attacks
+class LaserProjectile {
+    constructor(x, y, vx, vy, damage, color, target) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx * 4;
+        this.vy = vy * 4;
+        this.damage = damage;
+        this.color = color;
+        this.target = target;
+        this.hitEnemies = [];
+        this.lifetime = 1000; // 1 second
+        this.startTime = Date.now();
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Check if laser should expire
+        if (Date.now() - this.startTime > this.lifetime) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    render(ctx) {
+        // Draw laser beam
+        ctx.save();
+        
+        // Create gradient for laser effect
+        const gradient = ctx.createLinearGradient(this.x - this.vx * 10, this.y - this.vy * 10, this.x, this.y);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        gradient.addColorStop(0.5, this.color);
+        gradient.addColorStop(1, this.color);
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.x - this.vx * 20, this.y - this.vy * 20);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+        
+        // Add glow effect
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(this.x - this.vx * 20, this.y - this.vy * 20);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.restore();
     }
 }
 

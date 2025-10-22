@@ -53,6 +53,34 @@
                         <div class="tower-cost">$150</div>
                     </div>
                 </div>
+                <div class="tower-option" data-tower="ice" draggable="true">
+                    <div class="tower-icon">❄️</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Ice Tower</div>
+                        <div class="tower-cost">$120</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="poison" draggable="true">
+                    <div class="tower-icon">☠️</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Poison Tower</div>
+                        <div class="tower-cost">$180</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="laser" draggable="true">
+                    <div class="tower-icon">🔴</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Laser Tower</div>
+                        <div class="tower-cost">$300</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="shield" draggable="true">
+                    <div class="tower-icon">🛡️</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Shield Tower</div>
+                        <div class="tower-cost">$250</div>
+                    </div>
+                </div>
             </div>
             <div class="controls">
                 <button id="start-wave">Start Wave</button>
@@ -65,6 +93,13 @@
                 <h2 id="overlayTitle">Tower Defense</h2>
                 <p id="overlayMessage">Click "Start Wave" to begin!</p>
                 <button id="overlayButton">Start Game</button>
+            </div>
+        </div>
+        <div class="tooltip" id="tooltip">
+            <div class="tooltip-content">
+                <div class="tooltip-title"></div>
+                <div class="tooltip-stats"></div>
+                <div class="tooltip-description"></div>
             </div>
         </div>
     </div>
