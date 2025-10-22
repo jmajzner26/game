@@ -350,21 +350,6 @@ button:disabled {
     border: 3px solid #00d4ff;
     cursor: crosshair;
     box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-    position: relative;
-}
-
-#gameCanvas::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(0, 255, 150, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 150, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(255, 100, 0, 0.05) 0%, transparent 50%);
-    pointer-events: none;
 }
 
 .game-overlay {
