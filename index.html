@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui-panel">
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Health:</span>
+                    <span id="health">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Money:</span>
+                    <span id="money">500</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Wave:</span>
+                    <span id="wave">1</span>
+                </div>
+            </div>
+            <div class="tower-shop">
+                <h3>Towers</h3>
+                <div class="tower-option" data-tower="basic">
+                    <div class="tower-icon">🔫</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Basic Tower</div>
+                        <div class="tower-cost">$50</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="rapid">
+                    <div class="tower-icon">⚡</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Rapid Tower</div>
+                        <div class="tower-cost">$100</div>
+                    </div>
+                </div>
+                <div class="tower-option" data-tower="heavy">
+                    <div class="tower-icon">💥</div>
+                    <div class="tower-info">
+                        <div class="tower-name">Heavy Tower</div>
+                        <div class="tower-cost">$200</div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="start-wave">Start Wave</button>
+                <button id="pause-game">Pause</button>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="game-overlay" id="gameOverlay">
+            <div class="overlay-content">
+                <h2 id="overlayTitle">Tower Defense</h2>
+                <p id="overlayMessage">Click "Start Wave" to begin!</p>
+                <button id="overlayButton">Start Game</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
