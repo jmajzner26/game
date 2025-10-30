@@ -13,7 +13,7 @@
             <h1 class="main-title">🎮 Multi-Game Arcade</h1>
             <nav class="game-nav">
                 <button class="nav-btn active" data-game="tetris">67 Tetris</button>
-                <button class="nav-btn" data-game="coming-soon">More Games Coming Soon!</button>
+                <button class="nav-btn" data-game="snake">Snake</button>
             </nav>
         </header>
 
@@ -100,26 +100,35 @@
                 </div>
             </div>
 
-            <!-- Coming Soon Placeholder -->
-            <div class="game-container hidden" id="coming-soon-game">
-                <div class="coming-soon">
-                    <h2>🎮 More Games Coming Soon!</h2>
-                    <p>Stay tuned for more exciting games!</p>
-                    <div class="game-previews">
-                        <div class="preview-card">
-                            <div class="preview-icon">🎯</div>
-                            <h3>Space Shooter</h3>
-                            <p>Coming Soon</p>
+            <!-- Snake Game -->
+            <div class="game-container hidden" id="snake-game">
+                <div class="game-header">
+                    <h2 class="game-title">Snake</h2>
+                    <p class="game-description">Eat food, grow the snake, avoid walls and yourself.</p>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="snake-canvas" width="400" height="400"></canvas>
+                        <div class="game-overlay hidden" id="snake-overlay">
+                            <div class="overlay-content">
+                                <h3 id="snake-overlay-title">Snake</h3>
+                                <p id="snake-overlay-message">Press SPACE to start!</p>
+                                <button id="snake-start-btn">Start Game</button>
+                            </div>
                         </div>
-                        <div class="preview-card">
-                            <div class="preview-icon">🧩</div>
-                            <h3>Puzzle Master</h3>
-                            <p>Coming Soon</p>
+                    </div>
+                    <div class="game-info">
+                        <div class="score-section">
+                            <h3>Score</h3>
+                            <div class="score-display"><span id="snake-score">0</span></div>
                         </div>
-                        <div class="preview-card">
-                            <div class="preview-icon">🏎️</div>
-                            <h3>Racing Game</h3>
-                            <p>Coming Soon</p>
+                        <div class="controls">
+                            <h3>Controls</h3>
+                            <div class="control-list">
+                                <div class="control-item"><span class="key">↑ ↓ ← →</span><span class="action">Move</span></div>
+                                <div class="control-item"><span class="key">Space</span><span class="action">Start</span></div>
+                                <div class="control-item"><span class="key">R</span><span class="action">Restart</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,6 +137,7 @@
     </div>
 
     <script src="tetris.js"></script>
+    <script src="snake.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

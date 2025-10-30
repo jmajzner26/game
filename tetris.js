@@ -288,10 +288,9 @@ class TetrisGame {
         const beforeLines = this.lines;
         this.clearLines();
         const cleared = this.lines - beforeLines;
-        // Basic scoring similar to classic
-        const lineScores = [0, 40, 100, 300, 1200];
+        // Scoring: 1 point per line
         if (cleared > 0) {
-            this.score += lineScores[cleared] * this.level;
+            this.score += cleared;
             this.level = Math.floor(this.lines / 10) + 1;
             // speed up
             this.dropInterval = Math.max(200, 1000 - (this.level - 1) * 75);
@@ -380,17 +379,9 @@ class TetrisGame {
         
         if (linesCleared > 0) {
             this.lines += linesCleared;
-            this.score += linesCleared * 10; // 10 points per line
-            
-            // Check for victory
-            if (this.score >= this.targetScore) {
-                this.victory();
-                return;
-            }
-            
+            // Score now handled in lockPiece using lines cleared delta
             // Increase level every 10 lines
             this.level = Math.floor(this.lines / 10) + 1;
-            
             this.updateUI();
             this.animateScore();
         }
