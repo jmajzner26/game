@@ -26,6 +26,8 @@ class SnakeGame {
 
     bindEvents() {
         document.addEventListener('keydown', (e) => {
+            const active = !document.getElementById('snake-game').classList.contains('hidden');
+            if (!active) return;
             if (this.gameOver && e.key.toLowerCase() === 'r') {
                 this.reset();
                 return;

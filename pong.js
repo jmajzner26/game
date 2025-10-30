@@ -18,6 +18,8 @@ class PongGame {
     }
     bind() {
         document.addEventListener('keydown', (e) => {
+            const active = !document.getElementById('pong-game').classList.contains('hidden');
+            if (!active) return;
             if (e.code === 'Space' && !this.running) { this.start(); }
             if (!this.running) return;
             if (e.key === 'ArrowUp') this.up = true;

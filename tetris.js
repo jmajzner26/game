@@ -109,6 +109,8 @@ class TetrisGame {
     setupEventListeners() {
         // Keyboard events
         document.addEventListener('keydown', (e) => {
+            const active = !document.getElementById('tetris-game').classList.contains('hidden');
+            if (!active) return;
             if (e.code === 'Space' && !this.gameRunning) {
                 e.preventDefault();
                 this.startGame();

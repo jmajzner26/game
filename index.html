@@ -21,6 +21,7 @@
                 <button class="nav-btn" data-game="whack">Whack-a-Mole</button>
                 <button class="nav-btn" data-game="memory">Memory</button>
                 <button class="nav-btn" data-game="shooter">Shooter</button>
+                <button class="nav-btn" data-game="polyracer">PolyRacer</button>
             </nav>
         </header>
 
@@ -107,6 +108,58 @@
                 </div>
             </div>
 
+            <!-- PolyRacer -->
+            <div class="game-container hidden" id="polyracer-game">
+                <div class="game-header">
+                    <h2 class="game-title">PolyRacer</h2>
+                    <p class="game-description">Top-down racing with multiple tracks. Finish fast and climb the leaderboard.</p>
+                </div>
+                <div class="game-area" style="justify-content:center; gap:20px; align-items:flex-start;">
+                    <div class="game-board">
+                        <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                            <label for="track-select">Track:</label>
+                            <select id="track-select">
+                                <option value="oval">Oval</option>
+                                <option value="chicane">Chicane</option>
+                                <option value="sprint">Sprint</option>
+                            </select>
+                            <button id="pr-restart-btn">Restart</button>
+                        </div>
+                        <canvas id="polyracer-canvas" width="640" height="480"></canvas>
+                        <div class="game-overlay hidden" id="polyracer-overlay">
+                            <div class="overlay-content">
+                                <h3 id="pr-overlay-title">PolyRacer</h3>
+                                <p id="pr-overlay-message">Arrow keys to drive • Space to start</p>
+                                <button id="pr-start-btn">Start Race</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-info" style="min-width:300px;">
+                        <div class="score-section">
+                            <h3>Lap Time</h3>
+                            <div class="score-display"><span id="pr-time">0.000</span></div>
+                        </div>
+                        <div class="stats-section">
+                            <div class="stat"><span class="stat-label">Best:</span><span class="stat-value" id="pr-best">-</span></div>
+                            <div class="stat"><span class="stat-label">Track:</span><span class="stat-value" id="pr-track">oval</span></div>
+                        </div>
+                        <div class="next-piece">
+                            <h3>Top 100 Leaderboard</h3>
+                            <ol id="pr-leaderboard" style="max-height:300px; overflow:auto; padding-left:20px;"></ol>
+                        </div>
+                        <div class="controls">
+                            <h3>Controls</h3>
+                            <div class="control-list">
+                                <div class="control-item"><span class="key">↑</span><span class="action">Accelerate</span></div>
+                                <div class="control-item"><span class="key">↓</span><span class="action">Brake/Reverse</span></div>
+                                <div class="control-item"><span class="key">← →</span><span class="action">Steer</span></div>
+                                <div class="control-item"><span class="key">Space</span><span class="action">Start</span></div>
+                                <div class="control-item"><span class="key">R</span><span class="action">Restart</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Pong Game -->
             <div class="game-container hidden" id="pong-game">
                 <div class="game-header">
@@ -284,6 +337,7 @@
     <script src="whack.js"></script>
     <script src="memory.js"></script>
     <script src="shooter.js"></script>
+    <script src="polyracer.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
