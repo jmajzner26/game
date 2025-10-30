@@ -1,4 +1,9 @@
 // Main App Logic for Multi-Game Arcade
+const trackEvent = (eventName, eventData = {}) => {
+    if (typeof window !== 'undefined' && typeof window.va === 'function') {
+        window.va(eventName, eventData);
+    }
+};
 class GameArcade {
     constructor() {
         this.currentGame = 'tetris';
@@ -23,6 +28,8 @@ class GameArcade {
                 
                 // Show selected game
                 this.showGame(gameType);
+
+                trackEvent('select_game', { game: gameType });
             });
         });
     }
@@ -48,4 +55,5 @@ class GameArcade {
 let gameArcade;
 window.addEventListener('load', () => {
     gameArcade = new GameArcade();
+    trackEvent('page_loaded');
 });
