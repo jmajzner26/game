@@ -14,6 +14,13 @@
             <nav class="game-nav">
                 <button class="nav-btn active" data-game="tetris">67 Tetris</button>
                 <button class="nav-btn" data-game="snake">Snake</button>
+                <button class="nav-btn" data-game="pong">Pong</button>
+                <button class="nav-btn" data-game="breakout">Breakout</button>
+                <button class="nav-btn" data-game="flappy">Flappy</button>
+                <button class="nav-btn" data-game="game2048">2048</button>
+                <button class="nav-btn" data-game="whack">Whack-a-Mole</button>
+                <button class="nav-btn" data-game="memory">Memory</button>
+                <button class="nav-btn" data-game="shooter">Shooter</button>
             </nav>
         </header>
 
@@ -100,6 +107,138 @@
                 </div>
             </div>
 
+            <!-- Pong Game -->
+            <div class="game-container hidden" id="pong-game">
+                <div class="game-header">
+                    <h2 class="game-title">Pong</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="pong-canvas" width="600" height="400"></canvas>
+                        <div class="game-overlay hidden" id="pong-overlay">
+                            <div class="overlay-content">
+                                <h3>Pong</h3>
+                                <p>Press SPACE to start • ↑/↓ move</p>
+                                <button id="pong-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breakout Game -->
+            <div class="game-container hidden" id="breakout-game">
+                <div class="game-header">
+                    <h2 class="game-title">Breakout</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="breakout-canvas" width="600" height="400"></canvas>
+                        <div class="game-overlay hidden" id="breakout-overlay">
+                            <div class="overlay-content">
+                                <h3>Breakout</h3>
+                                <p>Press SPACE to start • ←/→ move</p>
+                                <button id="breakout-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flappy Game -->
+            <div class="game-container hidden" id="flappy-game">
+                <div class="game-header">
+                    <h2 class="game-title">Flappy</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="flappy-canvas" width="400" height="600"></canvas>
+                        <div class="game-overlay hidden" id="flappy-overlay">
+                            <div class="overlay-content">
+                                <h3>Flappy</h3>
+                                <p>Press SPACE or click to flap</p>
+                                <button id="flappy-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2048 Game -->
+            <div class="game-container hidden" id="game2048-game">
+                <div class="game-header">
+                    <h2 class="game-title">2048</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="game2048-canvas" width="400" height="400"></canvas>
+                        <div class="game-overlay hidden" id="game2048-overlay">
+                            <div class="overlay-content">
+                                <h3>2048</h3>
+                                <p>Use arrow keys to slide tiles</p>
+                                <button id="game2048-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Whack-a-Mole Game -->
+            <div class="game-container hidden" id="whack-game">
+                <div class="game-header">
+                    <h2 class="game-title">Whack-a-Mole</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="whack-canvas" width="400" height="400"></canvas>
+                        <div class="game-overlay hidden" id="whack-overlay">
+                            <div class="overlay-content">
+                                <h3>Whack-a-Mole</h3>
+                                <p>Click the moles as they pop up!</p>
+                                <button id="whack-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Match Game -->
+            <div class="game-container hidden" id="memory-game">
+                <div class="game-header">
+                    <h2 class="game-title">Memory</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board" style="padding:10px;">
+                        <div id="memory-grid" style="display:grid;grid-template-columns:repeat(4,80px);gap:10px;"></div>
+                        <div class="game-overlay hidden" id="memory-overlay">
+                            <div class="overlay-content">
+                                <h3>Memory</h3>
+                                <p>Click to reveal, match pairs to win</p>
+                                <button id="memory-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shooter Game -->
+            <div class="game-container hidden" id="shooter-game">
+                <div class="game-header">
+                    <h2 class="game-title">Shooter</h2>
+                </div>
+                <div class="game-area" style="justify-content:center;">
+                    <div class="game-board">
+                        <canvas id="shooter-canvas" width="480" height="640"></canvas>
+                        <div class="game-overlay hidden" id="shooter-overlay">
+                            <div class="overlay-content">
+                                <h3>Shooter</h3>
+                                <p>Arrow keys to move • Space to shoot</p>
+                                <button id="shooter-start-btn">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Snake Game -->
             <div class="game-container hidden" id="snake-game">
                 <div class="game-header">
@@ -138,6 +277,13 @@
 
     <script src="tetris.js"></script>
     <script src="snake.js"></script>
+    <script src="pong.js"></script>
+    <script src="breakout.js"></script>
+    <script src="flappy.js"></script>
+    <script src="game2048.js"></script>
+    <script src="whack.js"></script>
+    <script src="memory.js"></script>
+    <script src="shooter.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
