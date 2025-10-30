@@ -45,7 +45,24 @@ class PolyRacer {
 			startLine: [{x:margin+120,y:this.height/2-40},{x:margin+120,y:this.height/2+40}],
 			laps: 1
 		});
-		return { oval: makeOval(), chicane: makeChicane(), sprint: makeSprint() };
+		const makePoly = () => ({
+			name: 'poly',
+			walls: [
+				// outer irregular polygon
+				[
+					{x:20,y:60},{x:this.width-40,y:40},{x:this.width-30,y:this.height/2-80},
+					{x:this.width-60,y:this.height-40},{x:80,y:this.height-30},{x:40,y:this.height/2+60}
+				],
+				// inner offset polygon for road width
+				[
+					{x:120,y:120},{x:this.width-140,y:110},{x:this.width-130,y:this.height/2-30},
+					{x:this.width-160,y:this.height-110},{x:150,y:this.height-120},{x:110,y:this.height/2+20}
+				],
+			],
+			startLine: [{x:this.width/2-50,y:this.height-120},{x:this.width/2+50,y:this.height-120}],
+			laps: 1
+		});
+		return { oval: makeOval(), chicane: makeChicane(), sprint: makeSprint(), poly: makePoly() };
 	}
 
 	bind() {
