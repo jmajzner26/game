@@ -6,6 +6,8 @@
     <title>67 Tetris - Multi-Game Arcade</title>
     <link rel="stylesheet" href="style.css">
     <script defer src="/_vercel/insights/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.20.0/cannon.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -22,6 +24,7 @@
                 <button class="nav-btn" data-game="memory">Memory</button>
                 <button class="nav-btn" data-game="shooter">Shooter</button>
                 <button class="nav-btn" data-game="polyracer">PolyRacer</button>
+                <button class="nav-btn" data-game="racer3d">3D Racer</button>
             </nav>
         </header>
 
@@ -161,6 +164,67 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 3D Racer Game -->
+            <div class="game-container hidden" id="racer3d-game">
+                <div class="game-header">
+                    <h2 class="game-title">3D Racer</h2>
+                    <p class="game-description">High-performance 3D racing with multiple tracks and environments.</p>
+                </div>
+                <div class="game-area" style="justify-content:center; gap:20px;">
+                    <div class="game-board" style="position:relative; width:800px; height:600px;">
+                        <div id="racer3d-container" style="width:100%; height:100%;"></div>
+                        <div class="game-overlay hidden" id="racer3d-overlay">
+                            <div class="overlay-content">
+                                <h3 id="r3d-overlay-title">3D Racer</h3>
+                                <div id="r3d-menu" style="text-align:center;">
+                                    <div style="margin:15px 0;">
+                                        <label>Track:</label>
+                                        <select id="r3d-track-select" style="margin-left:10px; padding:5px;">
+                                            <option value="city">City</option>
+                                            <option value="desert">Desert</option>
+                                            <option value="snow">Snow</option>
+                                            <option value="neon">Neon Night</option>
+                                        </select>
+                                    </div>
+                                    <button id="r3d-start-btn" style="padding:12px 24px; margin-top:10px;">Start Race</button>
+                                </div>
+                                <p id="r3d-overlay-message">WASD to drive • Arrow keys to steer</p>
+                            </div>
+                        </div>
+                        <div id="r3d-hud" style="position:absolute; top:10px; left:10px; color:#fff; font-family:monospace; pointer-events:none; display:none;">
+                            <div>Speed: <span id="r3d-speed">0</span> km/h</div>
+                            <div>Lap Time: <span id="r3d-lap-time">0.000</span>s</div>
+                            <div>Position: <span id="r3d-position">1/1</span></div>
+                            <div>Lap: <span id="r3d-lap">1/3</span></div>
+                        </div>
+                    </div>
+                    <div class="game-info" style="min-width:280px;">
+                        <div class="score-section">
+                            <h3>Best Time</h3>
+                            <div class="score-display"><span id="r3d-best-time">-</span></div>
+                        </div>
+                        <div class="stats-section">
+                            <div class="stat"><span class="stat-label">Track:</span><span class="stat-value" id="r3d-track-name">city</span></div>
+                        </div>
+                        <div class="next-piece">
+                            <h3>Leaderboard</h3>
+                            <ol id="r3d-leaderboard" style="max-height:250px; overflow:auto; padding-left:20px;"></ol>
+                        </div>
+                        <div class="controls">
+                            <h3>Controls</h3>
+                            <div class="control-list">
+                                <div class="control-item"><span class="key">W/↑</span><span class="action">Accelerate</span></div>
+                                <div class="control-item"><span class="key">S/↓</span><span class="action">Brake</span></div>
+                                <div class="control-item"><span class="key">A/D ← →</span><span class="action">Steer</span></div>
+                                <div class="control-item"><span class="key">Space</span><span class="action">Start</span></div>
+                                <div class="control-item"><span class="key">R</span><span class="action">Restart</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pong Game -->
             <div class="game-container hidden" id="pong-game">
                 <div class="game-header">
@@ -339,6 +403,7 @@
     <script src="memory.js"></script>
     <script src="shooter.js"></script>
     <script src="polyracer.js"></script>
+    <script src="racer3d.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
