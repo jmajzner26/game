@@ -102,8 +102,9 @@ public class TransmissionController : MonoBehaviour
         }
 
         // Calculate torque based on RPM and throttle
+        float maxTorque = carController != null ? carController.MaxMotorTorque : 1500f;
         float rpmFactor = GetRPMTorqueFactor();
-        float torque = carController.maxMotorTorque * throttleInput * rpmFactor;
+        float torque = maxTorque * throttleInput * rpmFactor;
 
         // Apply gear ratio
         if (currentGear > 0 && currentGear < gearRatios.Length)

@@ -26,6 +26,8 @@ public class DriftCarController : MonoBehaviour
     [SerializeField] private float maxSteerAngle = 35f;
     [SerializeField] private float downforce = 100f;
 
+    public float MaxMotorTorque => maxMotorTorque;
+
     [Header("Drift Settings")]
     [SerializeField] private float baseGrip = 0.95f;
     [SerializeField] private float driftGripMultiplier = 0.7f;
