@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Duel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="main-title">Shadow Duel</h1>
+        </header>
+
+        <main>
+            <!-- Shadow Duel Game Info -->
+            <div class="game-container" id="shadow-duel-game">
+                <div class="game-header">
+                    <h2 class="game-title">Shadow Duel</h2>
+                    <p class="game-description">A cinematic sword-fighting game with precision combat, slow-motion finishers, and adaptive AI.</p>
+                </div>
+
+                <div class="game-area">
+                    <div class="game-board">
+                        <div class="game-info-box">
+                            <h3>⚔️ Epic Sword Combat</h3>
+                            <p>Master parrying, dodging, and directional combat in intense 1v1 duels!</p>
+                        </div>
+
+                        <div class="game-features">
+                            <h3>Game Features</h3>
+                            <ul>
+                                <li>✨ Skill-based combat with perfect parry mechanics</li>
+                                <li>🎬 Slow-motion finisher sequences</li>
+                                <li>🗡️ Three unique weapon types (Katana, Twin Blades, Claymore)</li>
+                                <li>🧠 Adaptive AI that learns your patterns</li>
+                                <li>🌧️ Dynamic arenas with weather effects</li>
+                                <li>⚙️ Progression system with skill tree</li>
+                            </ul>
+                        </div>
+
+                        <div class="controls">
+                            <h3>Controls</h3>
+                            <div class="control-list">
+                                <div class="control-item">
+                                    <span class="key">WASD</span>
+                                    <span class="action">Movement</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Mouse</span>
+                                    <span class="action">Directional Combat</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Left Click</span>
+                                    <span class="action">Light Attack</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Right Click</span>
+                                    <span class="action">Heavy Attack</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Space</span>
+                                    <span class="action">Parry</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Shift</span>
+                                    <span class="action">Dodge</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">Q</span>
+                                    <span class="action">Feint</span>
+                                </div>
+                                <div class="control-item">
+                                    <span class="key">E</span>
+                                    <span class="action">Special Ability</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-status">
+                            <div class="status-badge">
+                                <strong>Unity Project</strong>
+                                <p>Complete C# codebase ready for Unity 2022.3 LTS</p>
+                            </div>
+                        </div>
+
+                        <div class="installation-instructions">
+                            <h3>🚀 Getting Started</h3>
+                            <ol>
+                                <li>Open Unity 2022.3 LTS</li>
+                                <li>Create new 3D (URP) project named "ShadowDuel"</li>
+                                <li>Copy scripts from <code>ShadowDuelUnity/Assets/_Game/Scripts/</code></li>
+                                <li>Follow <code>IMPLEMENTATION_GUIDE.md</code></li>
+                                <li>Build and test!</li>
+                            </ol>
+                        </div>
+
+                        <div class="project-links">
+                            <h3>📚 Documentation</h3>
+                            <div class="links-grid">
+                                <a href="ShadowDuelUnity/README.md" class="doc-link">📖 README</a>
+                                <a href="ShadowDuelUnity/SETUP_GUIDE.md" class="doc-link">⚙️ Setup Guide</a>
+                                <a href="ShadowDuelUnity/IMPLEMENTATION_GUIDE.md" class="doc-link">🔧 Implementation</a>
+                                <a href="ShadowDuelUnity/PROJECT_STATUS.md" class="doc-link">📊 Status</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .game-info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .game-features {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .game-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .game-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .game-features li:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .installation-instructions {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            margin-bottom: 20px;
+        }
+
+        .installation-instructions ol {
+            margin: 10px 0;
+        }
+
+        .installation-instructions code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .project-links {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .doc-link {
+            display: block;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .doc-link:hover {
+            background: #764ba2;
+        }
+    </style>
+</body>
+</html>
+
