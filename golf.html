@@ -48,6 +48,10 @@
             </div>
             <div class="hud-section right">
                 <div class="hud-item">
+                    <span class="hud-label">Club</span>
+                    <span id="hud-club" class="hud-value">Driver</span>
+                </div>
+                <div class="hud-item">
                     <span class="hud-label">Wind</span>
                     <span id="hud-wind" class="hud-value">5 mph ↗</span>
                 </div>
@@ -90,11 +94,24 @@
             </div>
         </div>
 
+        <!-- Club Selector Overlay -->
+        <div id="club-selector" class="club-selector hidden">
+            <div class="club-selector-content">
+                <div class="club-selector-header">
+                    <h3>Select Club</h3>
+                    <button id="club-close" class="control-btn">Close</button>
+                </div>
+                <div id="club-grid" class="club-grid"></div>
+                <div class="club-legend">Press C to toggle • Click to equip</div>
+            </div>
+        </div>
+
         <!-- Game Canvas -->
         <canvas id="game-canvas"></canvas>
 
         <!-- Game Controls -->
         <div id="game-controls" class="game-controls">
+            <button id="btn-club" class="control-btn">Clubs (C)</button>
             <button id="btn-pause" class="control-btn">Pause</button>
             <button id="btn-photo-mode" class="control-btn">Photo Mode</button>
             <button id="btn-replay" class="control-btn">Replay</button>
@@ -155,6 +172,7 @@
     <script src="js/ui/HUD.js"></script>
     <script src="js/ui/MenuSystem.js"></script>
     <script src="js/ui/PhotoMode.js"></script>
+    <script src="js/ui/ClubSelector.js"></script>
     <script src="js/modes/GameModeManager.js"></script>
     <script src="js/modes/CourseMode.js"></script>
     <script src="js/modes/DrivingRangeMode.js"></script>

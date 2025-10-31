@@ -20,6 +20,7 @@ class ShadowDuelGame {
             facingRight: true,
             attacking: false,
             attackCooldown: 0,
+            attackHitFrames: 0,
             parrying: false,
             dodging: false,
             dodgeCooldown: 0,
@@ -40,6 +41,7 @@ class ShadowDuelGame {
             facingRight: false,
             attacking: false,
             attackCooldown: 0,
+            attackHitFrames: 0,
             parrying: false,
             velocity: { x: 0, y: 0 },
             onGround: true,
@@ -57,6 +59,8 @@ class ShadowDuelGame {
         this.slowMotionTimer = 0;
         this.particles = [];
         this.hitEffects = [];
+        this.hasHitThisAttack = false;
+        this.enemyHasHitThisAttack = false;
         
         this.setupControls();
         this.gameLoop();
@@ -181,13 +185,17 @@ class ShadowDuelGame {
         if (this.keys[' '] && !player.attacking && !player.parrying && !player.dodging && player.stamina >= 15) {
             player.attacking = true;
             player.attackCooldown = 0.4;
+            player.attackHitFrames = 0.2; // Hitbox active for 0.2 seconds
             player.stamina -= 15;
+            this.hasHitThisAttack = false; // Reset hit flag for new attack
         }
         
         if (player.attacking) {
             player.attackCooldown -= dt;
+            player.attackHitFrames -= dt;
             if (player.attackCooldown <= 0) {
                 player.attacking = false;
+                this.hasHitThisAttack = false;
             }
         }
         
@@ -237,8 +245,10 @@ class ShadowDuelGame {
             if (Math.abs(distance) < 100 && !enemy.attacking && enemy.stamina >= 15) {
                 enemy.attacking = true;
                 enemy.attackCooldown = 0.4;
+                enemy.attackHitFrames = 0.2; // Hitbox active for 0.2 seconds
                 enemy.stamina -= 15;
                 enemy.aiCooldown = 1.0;
+                this.enemyHasHitThisAttack = false; // Reset hit flag for new attack
             }
             // Try to parry if player is attacking
             else if (player.attacking && Math.abs(distance) < 100 && enemy.stamina >= 20) {
@@ -259,8 +269,10 @@ class ShadowDuelGame {
         
         if (enemy.attacking) {
             enemy.attackCooldown -= dt;
+            enemy.attackHitFrames -= dt;
             if (enemy.attackCooldown <= 0) {
                 enemy.attacking = false;
+                this.enemyHasHitThisAttack = false;
             }
         }
         
@@ -310,12 +322,13 @@ class ShadowDuelGame {
         const enemy = this.enemy;
         const distance = Math.abs(player.x - enemy.x);
         
-        // Player attacking enemy
-        if (player.attacking && !enemy.parrying && distance < 100) {
+        // Player attacking enemy - only hit during hitbox window and once per attack
+        if (player.attacking && player.attackHitFrames > 0 && !enemy.parrying && distance < 100 && !this.hasHitThisAttack) {
             enemy.health -= 10;
             this.comboCount++;
             this.comboTimer = 2.0;
             this.createHitEffect(enemy.x, enemy.y);
+            this.hasHitThisAttack = true; // Prevent multiple hits from same attack
             
             if (enemy.health <= 0) {
                 this.slowMotion = true;
@@ -325,10 +338,11 @@ class ShadowDuelGame {
             }
         }
         
-        // Enemy attacking player
-        if (enemy.attacking && !player.parrying && !player.dodging && distance < 100) {
+        // Enemy attacking player - only hit during hitbox window and once per attack
+        if (enemy.attacking && enemy.attackHitFrames > 0 && !player.parrying && !player.dodging && distance < 100 && !this.enemyHasHitThisAttack) {
             player.health -= 10;
             this.createHitEffect(player.x, player.y);
+            this.enemyHasHitThisAttack = true; // Prevent multiple hits from same attack
         }
         
         // Perfect parry

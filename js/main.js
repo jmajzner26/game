@@ -3,6 +3,7 @@ let gameEngine = null;
 let hud = null;
 let menuSystem = null;
 let photoMode = null;
+let clubSelector = null;
 
 // Initialize game when page loads
 window.addEventListener('DOMContentLoaded', () => {
@@ -25,12 +26,14 @@ function initGame() {
     hud = new HUD();
     menuSystem = new MenuSystem(gameEngine);
     photoMode = new PhotoMode(gameEngine);
+    clubSelector = new ClubSelector(gameEngine);
 
     // Make accessible globally
     window.gameEngine = gameEngine;
     window.hud = hud;
     window.menuSystem = menuSystem;
     window.photoMode = photoMode;
+    window.clubSelector = clubSelector;
 
     // Setup swing system callbacks
     gameEngine.swingSystem.swingCompleteCallback = (swingData) => {
@@ -48,7 +51,15 @@ function initGame() {
             e.preventDefault();
             handleSwingInput();
         }
+        if (e.key.toLowerCase() === 'c') {
+            e.preventDefault();
+            clubSelector.toggle();
+        }
     });
+
+    // Club button
+    const btnClub = document.getElementById('btn-club');
+    if (btnClub) btnClub.addEventListener('click', () => clubSelector.toggle());
 
     // Setup gamepad handler
     setupGamepadHandler();
@@ -64,6 +75,7 @@ function initGame() {
                 const hole = gameEngine.courseSystem.getCurrentHole();
                 const lieType = gameEngine.courseSystem.getTerrainType(gameState.ballPosition);
                 const lie = gameEngine.physicsEngine.getLieType(lieType);
+                const clubName = gameEngine.progressionSystem.getEquippedClub()?.name || 'Club';
                 
                 hud.update({
                     ...gameState,
@@ -74,7 +86,8 @@ function initGame() {
                     swingPower: gameEngine.swingSystem.getPowerPercentage(),
                     swingTempo: gameEngine.swingSystem.getTempoAngle(),
                     swingBackspin: gameEngine.swingSystem.backspin,
-                    swingSidespin: gameEngine.swingSystem.sidespin
+                    swingSidespin: gameEngine.swingSystem.sidespin,
+                    clubName
                 });
             }
         }

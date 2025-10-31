@@ -13,6 +13,7 @@ class HUD {
         this.backspinSlider = document.getElementById('backspin-slider');
         this.sidespinSlider = document.getElementById('sidespin-slider');
         this.swingInterface = document.getElementById('swing-interface');
+        this.clubElement = document.getElementById('hud-club');
         
         this.setupSpinControls();
     }
@@ -61,6 +62,11 @@ class HUD {
         // Update strokes
         if (this.strokesElement && gameState.strokes !== undefined) {
             this.strokesElement.textContent = gameState.strokes;
+        }
+
+        // Update club
+        if (this.clubElement && gameState.clubName) {
+            this.clubElement.textContent = gameState.clubName;
         }
 
         // Update swing interface
