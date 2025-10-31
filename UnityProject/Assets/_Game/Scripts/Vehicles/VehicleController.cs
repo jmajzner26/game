@@ -360,5 +360,18 @@ public class VehicleController : MonoBehaviour
     {
         currentGripMultiplier = multiplier;
     }
+    
+    // AI Control Methods
+    public void SetAIInput(float throttle, float steer, bool handbrake, bool boost)
+    {
+        throttleInput = throttle;
+        steerInput = steer;
+        handbrakeInput = handbrake;
+        if (boost && boostRechargeTimer <= 0f && !boostActive)
+        {
+            boostActive = true;
+            boostTimer = carConfig.boostDuration;
+        }
+    }
 }
 

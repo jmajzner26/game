@@ -33,10 +33,12 @@ public class AIDriver : MonoBehaviour
     // PID Steering
     private float steerIntegral = 0f;
     private float steerLastError = 0f;
+    private float lastSteerValue = 0f;
     
     // PID Throttle
     private float throttleIntegral = 0f;
     private float throttleLastError = 0f;
+    private float lastThrottleValue = 0f;
     
     // Rubber-banding
     private Transform playerCar;
@@ -79,6 +81,9 @@ public class AIDriver : MonoBehaviour
         ApplySteering();
         ApplyThrottle();
         ApplyRubberBanding();
+        
+        // Apply all inputs together
+        vehicleController.SetAIInput(lastThrottleValue, lastSteerValue, false, false);
     }
     
     private void UpdateTargetPosition()
@@ -128,14 +133,9 @@ public class AIDriver : MonoBehaviour
         
         steerLastError = angleError;
         
-        // Clamp and apply
+        // Clamp and store
         float steer = Mathf.Clamp(steerOutput / 45f, -1f, 1f);
-        
-        // Use Input System callback simulation
-        var context = new UnityEngine.InputSystem.InputAction.CallbackContext();
-        vehicleController.OnSteer(new UnityEngine.InputSystem.InputAction.CallbackContext());
-        // Direct control instead:
-        vehicleController.GetComponent<VehicleController>().GetType().GetField("steerInput", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(vehicleController, steer);
+        lastSteerValue = steer;
     }
     
     private void ApplyThrottle()
@@ -150,11 +150,9 @@ public class AIDriver : MonoBehaviour
         
         throttleLastError = speedError;
         
-        // Clamp
-        float throttle = Mathf.Clamp01(throttleOutput / 20f);
-        
-        // Apply (similar to steering - would need reflection or public method)
-        // For now, assume VehicleController has public methods or we modify it
+        // Clamp and store
+        float throttleValue = Mathf.Clamp01(throttleOutput / 20f);
+        lastThrottleValue = throttleValue;
     }
     
     private void ApplyRubberBanding()

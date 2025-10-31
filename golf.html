@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Game - Skill-Based Golf</title>
+    <link rel="stylesheet" href="golf-style.css">
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu-screen">
+        <div class="menu-content">
+            <h1 class="game-title">Golf Game</h1>
+            <div class="menu-buttons">
+                <button class="menu-btn" id="btn-9-hole">9-Hole Course</button>
+                <button class="menu-btn" id="btn-18-hole">18-Hole Course</button>
+                <button class="menu-btn" id="btn-driving-range">Driving Range</button>
+                <button class="menu-btn" id="btn-putting-challenge">Putting Challenge</button>
+                <button class="menu-btn" id="btn-daily-event">Daily Event</button>
+                <button class="menu-btn" id="btn-garage">Garage (Clubs & Balls)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="game-screen hidden">
+        <!-- Broadcast HUD -->
+        <div id="game-hud" class="hud">
+            <div class="hud-section left">
+                <div class="hud-item">
+                    <span class="hud-label">Hole</span>
+                    <span id="hud-hole" class="hud-value">1</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Par</span>
+                    <span id="hud-par" class="hud-value">4</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Distance</span>
+                    <span id="hud-distance" class="hud-value">420 yds</span>
+                </div>
+            </div>
+            <div class="hud-section center">
+                <div class="hud-item">
+                    <span class="hud-label">Lie</span>
+                    <span id="hud-lie" class="hud-value">Fairway</span>
+                </div>
+            </div>
+            <div class="hud-section right">
+                <div class="hud-item">
+                    <span class="hud-label">Wind</span>
+                    <span id="hud-wind" class="hud-value">5 mph ↗</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Strokes</span>
+                    <span id="hud-strokes" class="hud-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swing Interface -->
+        <div id="swing-interface" class="swing-interface hidden">
+            <div class="swing-meter">
+                <div class="power-bar-container">
+                    <div id="power-bar" class="power-bar"></div>
+                </div>
+                <div class="tempo-indicator">
+                    <div id="tempo-meter" class="tempo-meter">
+                        <div id="tempo-needle" class="tempo-needle"></div>
+                    </div>
+                    <div class="tempo-zones">
+                        <span class="tempo-zone slow">Slow</span>
+                        <span class="tempo-zone perfect">Perfect</span>
+                        <span class="tempo-zone fast">Fast</span>
+                    </div>
+                </div>
+                <div class="spin-control">
+                    <div class="spin-slider">
+                        <label>Backspin: <span id="backspin-value">0</span></label>
+                        <input type="range" id="backspin-slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="spin-slider">
+                        <label>Sidespin: <span id="sidespin-value">0</span></label>
+                        <input type="range" id="sidespin-slider" min="-100" max="100" value="0">
+                    </div>
+                </div>
+            </div>
+            <div class="aim-preview-container">
+                <canvas id="aim-preview" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Game Controls -->
+        <div id="game-controls" class="game-controls">
+            <button id="btn-pause" class="control-btn">Pause</button>
+            <button id="btn-photo-mode" class="control-btn">Photo Mode</button>
+            <button id="btn-replay" class="control-btn">Replay</button>
+            <button id="btn-menu" class="control-btn">Menu</button>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="pause-menu hidden">
+            <div class="pause-content">
+                <h2>Paused</h2>
+                <button id="btn-resume" class="menu-btn">Resume</button>
+                <button id="btn-restart" class="menu-btn">Restart</button>
+                <button id="btn-quit" class="menu-btn">Quit to Menu</button>
+            </div>
+        </div>
+
+        <!-- Photo Mode Overlay -->
+        <div id="photo-mode" class="photo-mode hidden">
+            <div class="photo-controls">
+                <button id="photo-exit" class="control-btn">Exit Photo Mode</button>
+                <button id="photo-capture" class="control-btn">Capture Photo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Garage Screen -->
+    <div id="garage-screen" class="menu-screen hidden">
+        <div class="menu-content">
+            <h1>Garage</h1>
+            <div class="garage-tabs">
+                <button class="tab-btn active" data-tab="clubs">Clubs</button>
+                <button class="tab-btn" data-tab="balls">Balls</button>
+            </div>
+            <div id="garage-content" class="garage-content">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="menu-btn" id="btn-garage-back">Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/core/GameEngine.js"></script>
+    <script src="js/core/PhysicsEngine.js"></script>
+    <script src="js/core/WindSystem.js"></script>
+    <script src="js/core/BallController.js"></script>
+    <script src="js/core/SwingSystem.js"></script>
+    <script src="js/core/CourseSystem.js"></script>
+    <script src="js/core/ProgressionSystem.js"></script>
+    <script src="js/ui/HUD.js"></script>
+    <script src="js/ui/MenuSystem.js"></script>
+    <script src="js/ui/PhotoMode.js"></script>
+    <script src="js/modes/GameModeManager.js"></script>
+    <script src="js/modes/CourseMode.js"></script>
+    <script src="js/modes/DrivingRangeMode.js"></script>
+    <script src="js/modes/PuttingChallengeMode.js"></script>
+    <script src="js/modes/DailyEventMode.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
