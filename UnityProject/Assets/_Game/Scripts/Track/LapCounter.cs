@@ -15,6 +15,7 @@ public class LapCounter : MonoBehaviour
     private int targetLaps;
     
     public int CurrentLap => currentLap;
+    public int TotalLaps => targetLaps;
     public float CurrentLapTime => Time.time - lastLapStartTime;
     public float BestLapTime => bestLapTime == float.MaxValue ? 0f : bestLapTime;
     public float LastLapTime => lastLapTime;

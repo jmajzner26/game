@@ -212,7 +212,7 @@ Assets/
 **Buildings not placing?**
 - Check BuildingPlacement is on GameManager or separate GameObject
 - Verify ground layer mask is set correctly
-- Ensure curing has required resources
+- Ensure player has required resources
 
 ---
 
