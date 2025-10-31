@@ -106,6 +106,9 @@ function handleSwingInput() {
 function handleSwingComplete(swingData) {
     if (!gameEngine) return;
 
+    // Increment stroke counter
+    gameEngine.strokes++;
+
     // Reset spin controls
     if (hud) {
         hud.resetSpinControls();
