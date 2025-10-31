@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>67 Tetris</title>
+    <title>Game Collection</title>
     <link rel="stylesheet" href="style.css">
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 class="main-title">67 Tetris</h1>
+            <h1 class="main-title">Game Collection</h1>
+            <nav class="game-nav">
+                <button class="nav-btn active" data-game="tetris">67 Tetris</button>
+                <button class="nav-btn" data-game="shadow-duel">Shadow Duel</button>
+                <button class="nav-btn" data-game="golf">Golf</button>
+            </nav>
         </header>
 
         <main>
             <!-- 67 Tetris Game -->
-            <div class="game-container" id="tetris-game">
+            <div class="game-container active" id="tetris-game">
                 <div class="game-header">
                     <h2 class="game-title">67 Tetris</h2>
                     <p class="game-description">Classic falling-piece Tetris. Clear lines and aim for 67+ points!</p>
