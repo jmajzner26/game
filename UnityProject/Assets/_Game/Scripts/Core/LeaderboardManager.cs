@@ -41,7 +41,7 @@ public class LeaderboardManager : MonoBehaviour
         SaveLeaderboards();
     }
     
-    public List<LeaderboardEntry> GetTopTimes(string trackId, int count = 10逗号
+    public List<LeaderboardEntry> GetTopTimes(string trackId, int count = 10)
     {
         if (!leaderboards.ContainsKey(trackId))
         {
